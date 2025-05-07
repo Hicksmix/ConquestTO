@@ -1,0 +1,81 @@
+/**
+ * DATENBANK
+ *
+ * Kapselt alle Datenbankanfragen an die Datenbank für die Users-Tabelle
+ */
+// Import aller benötigten Models und anderweitigen Datenbank-Funktionen
+const getConnection = require("./connection");
+const User = require('../model/user');
+
+/**
+ * Liefert ein User-Objekt für die übergebene Email
+ *
+ * @param email
+ * @returns {Promise<User>}
+ */
+async function getUserByMail(email) {
+    let result = null;
+    let conn;
+    try {
+        conn = await getConnection();
+        let row = await conn.query('select * from users where email = ? LIMIT 1', [email]);
+        if (row.length === 1) { // Wenn 1 Ergebnis gefunden wurde
+            result = new User(row[0]['id'], row[0]['username'], row[0]['password'], row[0]['email'], row[0]['pbw_pin']);
+        }
+        return result;
+    } catch (e) {
+        console.log(e);
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
+/**
+ * Liefert ein User-Objekt für den übergebenen Username
+ *
+ * @param username
+ * @returns {Promise<User>}
+ */
+async function getUserByName(username) {
+    let result = null;
+    let conn;
+    try {
+        conn = await getConnection();
+        let row = await conn.query('select * from users where username = ? LIMIT 1', [username]);
+        if (row.length === 1) { // Wenn 1 Ergebnis gefunden wurde
+            result = new User(row[0]['id'], row[0]['username'], row[0]['password'], row[0]['email'], row[0]['pbw_pin']);
+        }
+        return result;
+    } catch (e) {
+        console.log(e);
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
+/**
+ * Erstellt einen neuen User
+ * @param id
+ * @param username
+ * @param password
+ * @param email
+ * @param pbw_pin
+ * @returns {Promise<boolean>}
+ */
+async function createNewUser(id, username, password, email, pbw_pin) {
+    let conn;
+    try {
+        conn = await getConnection();
+        let row;
+        if (conn) {
+            let row = await conn.query('insert into `users` (id, username, email, password, pbw_pin) VALUES (?, ?, ?, ?, ?)', [id, username, email, password, pbw_pin]);
+            if (row.affectedRows === 1) return true;
+        }
+    } catch (e) {
+        console.log(e);
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
+module.exports = { getUserByMail, getUserByName, createNewUser }
