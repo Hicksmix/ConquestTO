@@ -7,14 +7,14 @@ class User {
     username;
     password;
     email;
-    pbw_pin;
+    pbwPin;
 
-    constructor(id, username, password, email, pbw_pin) {
+    constructor(id, username, password, email, pbwPin) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.email = email;
-        this.pbw_pin = pbw_pin;
+        this.pbwPin = pbwPin;
     }
 }
 

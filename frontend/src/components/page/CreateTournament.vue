@@ -1,0 +1,81 @@
+<script setup>
+import router from "@/router";
+
+import { ref, onMounted, computed } from 'vue';
+import { useAuthStore } from '@/store/auth';
+import { useTournamentStore } from '@/store/tournament';
+
+const authStore = useAuthStore();
+const tournamentStore = useTournamentStore();
+const name = ref('');
+const date = ref('');
+const isAuthenticated = computed(() => authStore.isAuthenticated);
+const isLoading = ref(false);
+
+/**
+ * Überprüft, ob Nutzer authentifiziert ist.
+ * Wenn der Nutzer bereits eingeloggt ist -> Weiterleitung Profilseite.
+ * Ruft checkValidity auf -> Überprüfung der Gültigkeit der Eingaben
+ */
+onMounted(() => {
+  //if (!isAuthenticated.value) router.push({ name: 'Profile' });
+  checkValidity({ target: document.getElementById('name') });
+  checkValidity({ target: document.getElementById('date') });
+})
+
+async function createTournament() {
+  console.log(name.value, date.value)
+  isLoading.value = true;
+  try {
+    await tournamentStore.createTournament(name.value, date.value);
+    isLoading.value = false;
+  } catch (error) {
+    isLoading.value = false;
+  }
+}
+
+/**
+ * Kontrolliert, ob der "einloggen"-Button aktiviert oder deaktiviert ist.
+ */
+function disableSubmit() {
+  return !name.value || !date.value;
+}
+
+/**
+ * Überprüft, ob das übergebene Eingabefeld (name, date) einen gültigen Wert enthält.
+ * Setzt eventuell Fehlermeldung
+ * @param e
+ */
+function checkValidity(e) {
+  if (!e.target.value) {
+    e.target.setCustomValidity("This field is mandatory");
+  } else {
+    e.target.setCustomValidity("")
+  }
+}
+</script>
+
+<template>
+  <div class="content m-auto">
+    <form class="m-auto login-form" @submit.prevent="createTournament">
+      <h1 class="form-header">CREATE TOURNAMENT</h1>
+      <div class="form-field">
+        <label for="name" class="form-label">Name</label>
+        <input v-model.trim="name" id="name" type="text" class="form-control" @input="checkValidity">
+      </div>
+      <div class="form-field">
+        <label for="date" class="form-label">Date</label>
+        <input v-model.trim="date" id="date" type="date" class="form-control" @input="checkValidity">
+      </div>
+
+      <div class="d-flex mt-4 justify-content-around">
+        <button class="button" type="submit" :disabled="disableSubmit()"
+                :class="{ ['button-loading']: isLoading }">Submit</button>
+      </div>
+    </form>
+  </div>
+</template>
+
+<style scoped>
+
+</style>

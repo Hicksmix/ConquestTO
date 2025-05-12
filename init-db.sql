@@ -1,33 +1,38 @@
 CREATE TABLE `tournaments` (
-  `id` integer PRIMARY KEY,
-  `orga_id` integer NOT NULL,
+  `id` varchar(255) PRIMARY KEY,
+  `name` varchar(255) NOT NULL,
+  `date` date NOT NULL,
+  `orga_id` varchar(255) NOT NULL,
+  `ended` bool NOT NULL,
   `created_at` timestamp
 );
 
 CREATE TABLE `users` (
-  `id` integer PRIMARY KEY,
-  `username` varchar(255),
-  `email` varchar(255),
-  `password` varchar(255),
+  `id` varchar(255) PRIMARY KEY,
+  `username` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
   `pbw_pin` varchar(255),
   `created_at` timestamp
 );
 
 CREATE TABLE `game` (
-  `id` integer PRIMARY KEY,
-  `player1` integer NOT NULL,
-  `player2` integer NOT NULL,
-  `tournament_id` integer,
-  `score1` integer,
-  `score2` integer,
+  `id` varchar(255) PRIMARY KEY,
+  `player1` varchar(255) NOT NULL,
+  `player2` varchar(255) NOT NULL,
+  `tournament_id` varchar(255),
+  `round_nr` integer,
+  `score1` integer NOT NULL,
+  `score2` integer NOT NULL,
+  `ended` bool NOT NULL,
   `created_at` timestamp
 );
 
 CREATE TABLE `tournament_user` (
-  `id` integer PRIMARY KEY,
-  `user_id` integer NOT NULL,
-  `tournament_id` integer NOT NULL,
-  `faction` varchar(255)
+  `id` int PRIMARY KEY,
+  `user_id` varchar(255) NOT NULL,
+  `tournament_id` varchar(255) NOT NULL,
+  `faction` varchar(255) NOT NULL
 );
 
 ALTER TABLE `tournaments` ADD FOREIGN KEY (`orga_id`) REFERENCES `users` (`id`);

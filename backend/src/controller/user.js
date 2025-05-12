@@ -1,4 +1,5 @@
 const { sha256 } = require("../helper/sha256");
+const { makeId } = require("../helper/makeId")
 const { sign } = require("jsonwebtoken");
 const { getUserByMail, createNewUser, getUserByName } = require("../database/user")
 
@@ -10,81 +11,64 @@ const { getUserByMail, createNewUser, getUserByName } = require("../database/use
  * @returns {Promise<*|null>}: Promise mit dem JWT im res
  */
 async function login(email, password, res) {
-    const title = "Fehler beim Login";
+    const title = "Login error";
 
     if (!(email?.length > 0) || !(password?.length > 0)) {
         res.status(400);
-        return res.json({ title, text: "Unvollständige Daten" });
+        return res.json({ title, text: "Incomplete data" });
     }
 
-    let sleeper = await getUserByMail(email);
+    let user = await getUserByMail(email);
 
-    if (sleeper === null) {
+    if (user === null) {
         res.status(400);
-        return res.json({ title, text: "Username oder Passwort falsch" });
+        return res.json({ title, text: "Wrong username or password" });
     }
 
-    if (sleeper.password === await sha256(password)) {
-        return res.json({ jwt: sign({ userid: sleeper.id }, process.env.JWT_SECRET) });
+    if (user.password === await sha256(password)) {
+        return res.json({ jwt: sign({ userid: user.id }, process.env.JWT_SECRET) });
     }
     res.status(400);
-    return res.json({ title, text: "Username oder Passwort falsch" });
+    return res.json({ title, text: "Wrong username or password" });
 }
 /**
  * Registriert einen neuen User und loggt diesen direkt ein. Gibt im Erfolgsfall ein JWT Token im res zurück
  * @param username
  * @param password
  * @param email
- * @param pbw_pin
+ * @param pbwPin
  * @param res
  * @returns {Promise<*|null>} Promise mit dem JWT im res
  */
-async function register(username, password, email, pbw_pin, res) {
-    const title = "Fehler beim Registrieren";
+async function register(username, password, email, pbwPin, res) {
+    const title = "Register error";
 
     if (!(username.length > 0) || !(password.length > 0) || !(email.length > 0)) {
         res.status(400);
-        return res.json({ title, text: "Unvollständige Daten" });
+        return res.json({ title, text: "Incomplete data" });
     }
 
-    let sleeper = await getUserByName(username);
+    let user = await getUserByName(username);
 
-    if (sleeper !== null) {
+    if (user !== null) {
         res.status(409);
-        return res.json({ title, text: "Der Username ist bereits vergeben" });
+        return res.json({ title, text: "Username already taken" });
     }
 
-    sleeper = await getUserByMail(email);
+    user = await getUserByMail(email);
 
-    if (sleeper !== null) {
+    if (user !== null) {
         res.status(409);
-        return res.json({ title, text: "Unter dieser E-Mail ist bereits ein Account registriert" });
+        return res.json({ title, text: "Email address already taken" });
     }
 
-    const id = makeid(64);
+    const id = makeId(64);
 
-    if (await createNewUser(id, username, await sha256(password), email, pbw_pin)) {
+    if (await createNewUser(id, username, await sha256(password), email, pbwPin)) {
         return res.json({ jwt: sign({ userid: id }, process.env.JWT_SECRET) });
     }
     res.status(500);
-    return res.json({ title, text: "Da ist etwas schief gelaufen. Bitte versuche es nochmal." });
-}
-
-/**
- * HILFSFUNKTION
- * Generiert einen zufälligen String mit vorgegebener Länge
- *
- * @param length
- * @returns {string}
- */
-function makeid(length) {
-    let result = '';
-    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
+    return res.json({ title, text: "Something went wrong. Please try again later" });
 }
 
 module.exports = {login, register}
