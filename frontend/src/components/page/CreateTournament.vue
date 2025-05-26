@@ -1,9 +1,7 @@
 <script setup>
-import router from "@/router";
-
-import { ref, onMounted, computed } from 'vue';
-import { useAuthStore } from '@/store/auth';
-import { useTournamentStore } from '@/store/tournament';
+import {computed, onMounted, ref} from 'vue';
+import {useAuthStore} from '@/store/auth';
+import {useTournamentStore} from '@/store/tournament';
 
 const authStore = useAuthStore();
 const tournamentStore = useTournamentStore();
@@ -19,8 +17,8 @@ const isLoading = ref(false);
  */
 onMounted(() => {
   //if (!isAuthenticated.value) router.push({ name: 'Profile' });
-  checkValidity({ target: document.getElementById('name') });
-  checkValidity({ target: document.getElementById('date') });
+  checkValidity({target: document.getElementById('name')});
+  checkValidity({target: document.getElementById('date')});
 })
 
 async function createTournament() {
@@ -57,22 +55,26 @@ function checkValidity(e) {
 
 <template>
   <div class="content m-auto">
-    <form class="m-auto login-form" @submit.prevent="createTournament">
-      <h1 class="form-header">CREATE TOURNAMENT</h1>
-      <div class="form-field">
-        <label for="name" class="form-label">Name</label>
-        <input v-model.trim="name" id="name" type="text" class="form-control" @input="checkValidity">
-      </div>
-      <div class="form-field">
-        <label for="date" class="form-label">Date</label>
-        <input v-model.trim="date" id="date" type="date" class="form-control" @input="checkValidity">
-      </div>
+    <div class="container-with-background">
+      <img src="./../../assets/images/logo.svg">
+      <form class="m-auto login-form" @submit.prevent="createTournament">
+        <h1 class="form-header">CREATE TOURNAMENT</h1>
+        <div class="form-field">
+          <label for="name" class="form-label">Name</label>
+          <input v-model.trim="name" id="name" type="text" class="form-control" @input="checkValidity">
+        </div>
+        <div class="form-field">
+          <label for="date" class="form-label">Date</label>
+          <input v-model.trim="date" id="date" type="date" class="form-control" @input="checkValidity">
+        </div>
 
-      <div class="d-flex mt-4 justify-content-around">
-        <button class="button" type="submit" :disabled="disableSubmit()"
-                :class="{ ['button-loading']: isLoading }">Submit</button>
-      </div>
-    </form>
+        <div class="button-container mt-4">
+          <button class="button" type="submit" :disabled="disableSubmit()"
+                  :class="{ ['button-loading']: isLoading }">Submit
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 

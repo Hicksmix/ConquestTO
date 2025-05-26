@@ -4,7 +4,7 @@ import axios from '../axios';
 
 export const useTournamentStore = defineStore('tournament', {
     state: () => ({
-        tournaments: new Map()
+        tournaments: []
     }),
     actions: {
         // Führt den Login-Prozess durch
@@ -19,10 +19,17 @@ export const useTournamentStore = defineStore('tournament', {
                 throw error;
             }
         },
-        // async getTournament(id) {
-        //     try {
-        //         const response = await axios.get('/tour')
-        //     }
-        // }
+        async getTournamentsForOrga() {
+            try {
+                const response = await axios.get('tournament/get-for-orga');
+                if (response.data.tournaments) {
+                    this.tournaments = response.data.tournaments
+                    return response.data.tournaments;
+                }
+            } catch (error) {
+                console.error('Loading tournaments failed:', error);
+                throw error;
+            }
+        }
     },
 });

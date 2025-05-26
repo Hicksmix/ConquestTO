@@ -1,5 +1,6 @@
-const { createNewTournament, getTournament } = require("../database/tournament")
+const { createNewTournament, getTournament, getTournamentsByOrgaId } = require("../database/tournament")
 const {makeId} = require("../helper/makeId");
+const {response} = require("express");
 
 /**
  * Liefert ein Turnier zurück
@@ -15,7 +16,7 @@ async function loadTournament(tournamentId, res) {
         return res.json({ title, text: "Incomplete data" });
     }
 
-    let tournament = await getTournament(tournamentId)
+    const tournament = await getTournament(tournamentId)
 
     if (!tournament) {
         res.status(404);
@@ -42,7 +43,6 @@ async function loadTournament(tournamentId, res) {
 async function createTournament(name, date, orgaId, res) {
     const title = "Error creating tournament";
 
-    console.log(name, date, orgaId)
     if (!(name.length > 0) || !(date.length > 0) || !(orgaId.length > 0)) {
         res.status(400);
         return res.json({ title, text: "Incomplete data" });
@@ -57,4 +57,24 @@ async function createTournament(name, date, orgaId, res) {
     return res.json({ title, text: "Something went wrong. Please try again later" });
 }
 
-module.exports = {loadTournament, createTournament}
+async function loadTournamentsForOrga(orgaId, res) {
+    const title = "Error loading tournaments";
+
+    if(!(orgaId.length > 0)) {
+        res.status();
+        return res.json({ title, text: "Incomplete data"});
+    }
+
+    const tournaments = await getTournamentsByOrgaId(orgaId);
+
+    // Ergebnisse zurückgeben.
+    if (tournaments) {
+        return res.json({ tournaments });
+    }
+
+    // Fehler beim Abrufen der Daten.
+    res.status(500);
+    return res.json({ title, text: "Something went wrong. Please try again later" });
+}
+
+module.exports = {loadTournament, createTournament, loadTournamentsForOrga}

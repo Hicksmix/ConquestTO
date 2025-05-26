@@ -7,7 +7,7 @@ let express = require('express');
 const { verify } = require("jsonwebtoken");
 const { verifyJWT } = require("../src/middleware/verifyJWT");
 const { login, register } = require("../src/controller/user")
-const { loadTournament, createTournament } = require("../src/controller/tournament")
+const { loadTournamentsForOrga, createTournament } = require("../src/controller/tournament")
 let router = express.Router();
 
 router.post('/user/login', async function(req, res){
@@ -19,6 +19,9 @@ router.put('/user/register', async function(req, res){
 
 router.put('/tournament/create', verifyJWT, async function(req, res){
    await createTournament(req.body.name, req.body.date, verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
+});
+router.get('/tournament/get-for-orga', verifyJWT, async function(req, res) {
+    await loadTournamentsForOrga(verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
 });
 
 module.exports = router;

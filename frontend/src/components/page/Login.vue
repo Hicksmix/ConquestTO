@@ -1,8 +1,8 @@
 <script setup>
 import router from "@/router";
 
-import { ref, onMounted, computed } from 'vue';
-import { useAuthStore } from '@/store/auth';
+import {computed, onMounted, ref} from 'vue';
+import {useAuthStore} from '@/store/auth';
 
 const authStore = useAuthStore();
 const email = ref('');
@@ -17,8 +17,8 @@ const isLoading = ref(false);
  */
 onMounted(() => {
   //if (isAuthenticated.value) router.push({ name: 'Profile' });
-  checkValidity({ target: document.getElementById('email') });
-  checkValidity({ target: document.getElementById('password') });
+  checkValidity({target: document.getElementById('email')});
+  checkValidity({target: document.getElementById('password')});
 })
 
 /**
@@ -59,27 +59,31 @@ function checkValidity(e) {
 
 <template>
   <div class="content m-auto">
-    <form class="m-auto login-form" @submit.prevent="handleLogin">
-      <h1 class="form-header">LOGIN</h1>
-      <div class="form-field">
-        <label for="email" class="form-label">Email</label>
-        <input v-model.trim="email" id="email" type="text" class="form-control" @input="checkValidity">
-      </div>
-      <div class="form-field">
-        <label for="password" class="form-label">Password</label>
-        <input v-model.trim="password" id="password" type="password" class="form-control" @input="checkValidity">
-      </div>
+    <div class="container-with-background">
+      <img src="./../../assets/images/logo.svg">
+      <form class="login-form my-3" @submit.prevent="handleLogin">
+        <h1 class="form-header">LOGIN</h1>
+        <div class="form-field">
+          <label for="email" class="form-label">Email address</label>
+          <input v-model.trim="email" id="email" type="text" class="form-control" @input="checkValidity">
+        </div>
+        <div class="form-field">
+          <label for="password" class="form-label">Password</label>
+          <input v-model.trim="password" id="password" type="password" class="form-control" @input="checkValidity">
+        </div>
 
-      <div class="d-flex mt-4 justify-content-around">
-        <button class="button" type="submit" :disabled="disableSubmit()"
-                :class="{ ['button-loading']: isLoading }">Log in</button>
-        <button type="button" class="button"
-                v-on:click="router.push({ name: 'Register' })">Sign up</button>
-      </div>
-    </form>
+        <div class="button-container mt-4">
+          <button type="submit" :disabled="disableSubmit()"
+                  :class="{ ['button-loading']: isLoading }">Log in
+          </button>
+          <button type="button" class="secondary"
+                  v-on:click="router.push({ name: 'Register' })">Sign up
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 
 <style scoped>
-
 </style>
