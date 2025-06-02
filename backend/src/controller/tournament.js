@@ -1,4 +1,4 @@
-const { createNewTournament, getTournament, getTournamentsByOrgaId } = require("../database/tournament")
+const { createNewTournament, getTournament, getTournamentsByOrgaId, getPlayerOverView } = require("../database/tournament")
 const {makeId} = require("../helper/makeId");
 const {response} = require("express");
 
@@ -43,7 +43,7 @@ async function loadTournament(tournamentId, res) {
 async function createTournament(name, date, orgaId, res) {
     const title = "Error creating tournament";
 
-    if (!(name.length > 0) || !(date.length > 0) || !(orgaId.length > 0)) {
+    if (!(name?.length > 0) || !(date?.length > 0) || !(orgaId?.length > 0)) {
         res.status(400);
         return res.json({ title, text: "Incomplete data" });
     }
@@ -60,7 +60,7 @@ async function createTournament(name, date, orgaId, res) {
 async function loadTournamentsForOrga(orgaId, res) {
     const title = "Error loading tournaments";
 
-    if(!(orgaId.length > 0)) {
+    if(!(orgaId?.length > 0)) {
         res.status();
         return res.json({ title, text: "Incomplete data"});
     }
@@ -73,6 +73,25 @@ async function loadTournamentsForOrga(orgaId, res) {
     }
 
     // Fehler beim Abrufen der Daten.
+    res.status(500);
+    return res.json({ title, text: "Something went wrong. Please try again later" });
+}
+
+async function loadTournament(tournamentId, res) {
+    const title = "Error loading tournament";
+
+    if(!(tournamentId?.length > 0)) {
+        res.status();
+        return res.json({title, text: "Incomplete data"});
+    }
+
+    const tournament = await getTournament(tournamentId);
+
+    if(tournament) {
+        tournament.players = await getPlayerOverView(tournamentId);
+        return res.json({tournament});
+    }
+
     res.status(500);
     return res.json({ title, text: "Something went wrong. Please try again later" });
 }

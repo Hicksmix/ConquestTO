@@ -62,7 +62,7 @@ function checkValidity(e) {
     <div class="container-with-background">
       <img src="./../../assets/images/logo.svg">
       <form class="login-form my-3" @submit.prevent="handleLogin">
-        <h1 class="form-header">LOGIN</h1>
+        <h1 class="form-header text-center">LOGIN</h1>
         <div class="form-field">
           <label for="email" class="form-label">Email address</label>
           <input v-model.trim="email" id="email" type="text" class="form-control" @input="checkValidity">

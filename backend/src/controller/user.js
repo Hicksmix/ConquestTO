@@ -28,8 +28,8 @@ async function login(email, password, res) {
     if (user.password === await sha256(password)) {
         return res.json({ jwt: sign({ userid: user.id }, process.env.JWT_SECRET) });
     }
-    res.status(400);
-    return res.json({ title, text: "Wrong username or password" });
+    res.status(500);
+    return res.json({ title, text: "Something went wrong. Please try again later" });
 }
 /**
  * Registriert einen neuen User und loggt diesen direkt ein. Gibt im Erfolgsfall ein JWT Token im res zurück
@@ -43,7 +43,7 @@ async function login(email, password, res) {
 async function register(username, password, email, pbwPin, res) {
     const title = "Register error";
 
-    if (!(username.length > 0) || !(password.length > 0) || !(email.length > 0)) {
+    if (!(username?.length > 0) || !(password?.length > 0) || !(email?.length > 0)) {
         res.status(400);
         return res.json({ title, text: "Incomplete data" });
     }

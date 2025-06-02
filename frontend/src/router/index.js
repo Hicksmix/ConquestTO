@@ -6,6 +6,7 @@ const routes = [
     { path: '/profile/register', name: 'Register', component: () => import('../components/page/Register.vue'), meta: { title: ' - Register' } },
     { path: '/tournament/create', name: 'Create Tournament', component: () => import('../components/page/CreateTournament.vue'), meta: { title: ' - Create Tournament' } },
     { path: '/tournament/my-tournaments', name: 'My Tournaments', component: () => import('../components/page/MyTournaments.vue'), meta: { title: ' - My Tournaments' } },
+    { path: '/tournament/:id', name: 'Tournament', component: () => import('../components/page/Tournament.vue'), meta: { title: ' - Tournament' } },
 ]
 
 const router = createRouter({

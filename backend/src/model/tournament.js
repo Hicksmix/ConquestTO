@@ -7,14 +7,16 @@ class Tournament {
     name;
     date;
     orgaId;
-    ended;
+    state;
+    players;
 
-    constructor(id, name, date, orgaId, ended) {
+    constructor(id, name, date, orgaId, state, players) {
         this.id = id;
         this.name = name;
         this.date = date;
         this.orgaId = orgaId;
-        this.ended = ended
+        this.state = state;
+        this.players = players;
     }
 }
 

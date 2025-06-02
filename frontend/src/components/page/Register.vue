@@ -31,7 +31,6 @@ onMounted(() => {
  * Nach erfolgreicher Registrierung → Laden der Benutzerdaten und Weiterleitung zur Startseite
  */
 async function handleRegister() {
-  console.log('Ä');
   isLoading.value = true;
   try {
     await authStore.register(username.value, password.value, email.value, pbwPin.value);
@@ -113,7 +112,7 @@ function checkRepeatPasswordValidity(e) {
   <div class="container-with-background">
     <img src="./../../assets/images/logo.svg">
     <form class="register-form" @submit.prevent="handleRegister" id="register-form">
-      <h1 class="form-header">REGISTER</h1>
+      <h1 class="form-header text-center">REGISTER</h1>
       <div class="form-field">
         <label for="email" class="form-label">Email address*</label>
         <input v-model.trim="email" id="email" type="email" class="form-control" @input="checkEmailValidity">

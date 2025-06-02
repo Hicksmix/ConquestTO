@@ -30,6 +30,8 @@
 
     --color-background-dark: #37474F;
     --color-background-dark-2: #505D6A;
+    --color-background-disabled: #A0A0A0;
+
 
     --color-border: var(--vt-c-divider-light-2);
     --color-border-hover: var(--vt-c-divider-light-1);
@@ -39,6 +41,8 @@
 
     --color-text-light: var(--vt-c-text-light-1);
     --color-heading-light: var(--vt-c-text-light-2);
+
+    --color-text-disabled: #677685;
 
     --section-gap: 160px;
 }

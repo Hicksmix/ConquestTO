@@ -1,16 +1,16 @@
-import { defineStore } from 'pinia';
-import { getActivePinia } from "pinia";
+import {defineStore} from 'pinia';
 import axios from '../axios';
 
 export const useTournamentStore = defineStore('tournament', {
     state: () => ({
-        tournaments: []
+        tournaments: [],
+        currentTournament: {}
     }),
     actions: {
         // Führt den Login-Prozess durch
         async createTournament(name, date) {
             try {
-                const response = await axios.put('/tournament/create', { name, date });
+                const response = await axios.put('/tournament/create', {name, date});
                 if (response.data.result) {
                     return response.data.result;
                 }
@@ -25,6 +25,18 @@ export const useTournamentStore = defineStore('tournament', {
                 if (response.data.tournaments) {
                     this.tournaments = response.data.tournaments
                     return response.data.tournaments;
+                }
+            } catch (error) {
+                console.error('Loading tournaments failed:', error);
+                throw error;
+            }
+        },
+        async getTournament(tournamentId) {
+            try {
+                const response = await axios.get('tournament/get-tournament', {params: {tournamentId}});
+                if (response.data.tournament) {
+                    this.currentTournament = response.data.tournament
+                    return response.data.tournament;
                 }
             } catch (error) {
                 console.error('Loading tournaments failed:', error);

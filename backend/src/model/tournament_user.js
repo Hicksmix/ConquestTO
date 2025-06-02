@@ -1,0 +1,33 @@
+/**
+ * MODEL
+ * TournamentUser
+ */
+class TournamentUser {
+    id;
+    username;
+    pbwPin;
+    email;
+    faction;
+    winCount;
+    lossCount;
+    drawCount;
+    VP;
+    TP;
+    SoS;
+
+    constructor(id, username, pbwPin, email, faction, winCount, lossCount, drawCount, VP, TP, SoS) {
+        this.id = id;
+        this.username = username;
+        this.pbwPin = pbwPin;
+        this.email = email;
+        this.faction = faction;
+        this.winCount = winCount;
+        this.lossCount = lossCount;
+        this.drawCount = drawCount;
+        this.SoS = SoS;
+        this.TP = TP;
+        this.VP = VP;
+    }
+}
+
+module.exports = TournamentUser;

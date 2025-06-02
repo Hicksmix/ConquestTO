@@ -22,7 +22,6 @@ onMounted(() => {
 })
 
 async function createTournament() {
-  console.log(name.value, date.value)
   isLoading.value = true;
   try {
     await tournamentStore.createTournament(name.value, date.value);
@@ -58,7 +57,7 @@ function checkValidity(e) {
     <div class="container-with-background">
       <img src="./../../assets/images/logo.svg">
       <form class="m-auto login-form" @submit.prevent="createTournament">
-        <h1 class="form-header">CREATE TOURNAMENT</h1>
+        <h1 class="form-header text-center">CREATE TOURNAMENT</h1>
         <div class="form-field">
           <label for="name" class="form-label">Name</label>
           <input v-model.trim="name" id="name" type="text" class="form-control" @input="checkValidity">

@@ -13,10 +13,17 @@ button {
   justify-content: center;
   border: 1px transparent;
   font-size: 1rem;
+  color: var(--color-text-light);
 
   &.secondary {
     background-color: var(--color-background-dark-2);
     color: var(--color-text);
+  }
+
+  &.disabled {
+    background-color: var(--color-background-disabled);
+    color: var(--color-text-disabled);
+    pointer-events: none;
   }
 }
 
@@ -29,7 +36,7 @@ button {
   box-shadow: 0 0 0.25rem 0.25rem rgba(0, 0, 0, 0.15);
 }
 
-ul {
+ul, .card-list {
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -50,6 +57,7 @@ ul {
 
     .card-title {
       font-weight: 600;
+      font-size: 1rem;
       margin-bottom: 0;
       color: var(--color-text-light);
     }
@@ -67,7 +75,7 @@ ul {
   flex-direction: row;
   gap: 1rem;
 
-  >* {
+  > * {
     flex-basis: 100%;
   }
 }
@@ -118,7 +126,13 @@ form {
 
 .form-header {
   color: var(--color-heading);
-  text-align: center;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 1.5rem;
+}
+
+.sub-header {
+  color: var(--color-heading);
+  font-weight: 500;
+  font-size: 1rem;
+  display: block;
 }

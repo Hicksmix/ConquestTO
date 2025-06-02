@@ -5,9 +5,9 @@ import {useTournamentStore} from '@/store/tournament';
 import router from './../../router';
 
 const authStore = useAuthStore();
-const tournamentStore = useTournamentStore()
+const tournamentStore = useTournamentStore();
 const isAuthenticated = computed(() => authStore.isAuthenticated);
-const orgaTournaments = computed(() => tournamentStore.tournaments)
+const orgaTournaments = computed(() => tournamentStore.tournaments);
 
 onMounted(async () => {
   // Authentifizierung überprüfen
@@ -21,19 +21,19 @@ onMounted(async () => {
   <div class="content m-auto">
     <div class="container-with-background">
       <img src="./../../assets/images/logo.svg">
-      <h1 class="form-header my-3">MY TOURNAMENTS</h1>
-      <ul class="tournament-cards card-list">
-        <li class="card" v-for="tournament of orgaTournaments">
-          <div class="card-text-container">
-            <span class="card-title">{{ tournament.name }}</span>
-            <div class="d-flex">
-              <span>{{ tournament.date }}</span>
-              <span class="ms-auto me-1">{{ `${tournament.ended ? 'ended' : 'ongoing'}` }}</span>
+      <h1 class="form-header mb-3 text-center">MY TOURNAMENTS</h1>
+        <ul class="tournament-cards card-list w-100">
+          <li class="card" v-for="tournament of orgaTournaments" v-on:click="router.push({name: 'Tournament', params: {id: tournament.id}})">
+            <div class="card-text-container">
+              <span class="card-title">{{ tournament.name }}</span>
+              <div class="d-flex">
+                <span>{{ tournament.date }}</span>
+                <span class="ms-auto me-1">{{ tournament.state }}</span>
+              </div>
             </div>
-          </div>
-          <span class="pi pi-arrow-right dark card-icon"></span>
-        </li>
-      </ul>
+            <span class="pi pi-arrow-right dark card-icon"></span>
+          </li>
+        </ul>
       <div class="button-container">
         <button v-on:click="router.push({ name: 'Create Tournament' })">Create</button>
         <button>Join</button>
@@ -43,11 +43,22 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.tournament-cards {
-  width: 255px;
-}
+.content {
+  height: 100%;
+  overflow: hidden;
+  display: block;
 
-.button-container {
-  margin: 0.5rem 1.5rem 0 1.5rem;
+  .container-with-background {
+    height: 100%;
+
+      .tournament-cards {
+        overflow: auto;
+        height: 100%;
+      }
+
+    .button-container {
+      margin: 0.5rem 1.5rem 0 1.5rem;
+    }
+  }
 }
 </style>
