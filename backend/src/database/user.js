@@ -54,6 +54,29 @@ async function getUserByName(username) {
 }
 
 /**
+ * Liefert ein User-Objekt für den übergebenen PBW Pin
+ *
+ * @param pin
+ * @returns {Promise<User>}
+ */
+async function getUserByPin(pin) {
+    let result = null;
+    let conn;
+    try {
+        conn = await getConnection();
+        let row = await conn.query('select * from users where pbw_pin = ? LIMIT 1', [pin]);
+        if (row.length === 1) { // Wenn 1 Ergebnis gefunden wurde
+            result = new User(row[0]['id'], row[0]['username'], row[0]['password'], row[0]['email'], row[0]['pbw_pin']);
+        }
+        return result;
+    } catch (e) {
+        console.log(e);
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
+/**
  * Liefert ein User-Objekt für die übergebene ID
  *
  * @param id
@@ -101,4 +124,4 @@ async function createNewUser(id, username, password, email, pbwPin) {
     }
 }
 
-module.exports = { getUserByMail, getUserByName, createNewUser, getUser }
+module.exports = { getUserByMail, getUserByName, createNewUser, getUser, getUserByPin }

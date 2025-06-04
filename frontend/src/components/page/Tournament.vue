@@ -21,7 +21,6 @@ onMounted(async () => {
   // Authentifizierung überprüfen
   if (!isAuthenticated.value) await router.push({name: 'Login'});
 
-  console.log(factionIcons)
   await tournamentStore.getTournament(tournamentId);
 })
 
@@ -33,7 +32,7 @@ onMounted(async () => {
       <img src="./../../assets/images/logo.svg">
       <div class="mb-3">
         <h1 class="form-header m-0 text-center">{{ tournamentData.name }}</h1>
-        <span class="sub-header text-center">{{ tournamentData.date }} {{ tournamentData.state }}</span>
+        <span class="sub-header text-center">{{ tournamentData.date }} | {{ tournamentData.state }}</span>
       </div>
       <span class="sub-header">Players</span>
       <ul class="card-list w-100">
@@ -56,7 +55,9 @@ onMounted(async () => {
         </li>
       </ul>
       <div class="button-container">
-        <button class="disabled" disabled>Add Players</button>
+        <button :class="[{disabled: tournamentData.state !== 'created'}]" :disabled="tournamentData.state !== 'created'"
+                v-on:click="router.push({name: 'Add Players', params: {id: tournamentId}})">Add Players
+        </button>
         <button>Rounds</button>
       </div>
     </div>

@@ -7,7 +7,7 @@ let express = require('express');
 const { verify } = require("jsonwebtoken");
 const { verifyJWT } = require("../src/middleware/verifyJWT");
 const { login, register } = require("../src/controller/user")
-const { loadTournamentsForOrga, createTournament, loadTournament} = require("../src/controller/tournament")
+const { loadTournamentsForOrga, createTournament, loadTournament, addPlayerToTournament, removePlayerFromTournament} = require("../src/controller/tournament")
 let router = express.Router();
 
 router.post('/user/login', async function(req, res){
@@ -25,6 +25,12 @@ router.get('/tournament/get-for-orga', verifyJWT, async function(req, res) {
 });
 router.get('/tournament/get-tournament', verifyJWT, async function(req, res) {
     await loadTournament(req.query.tournamentId, res)
+});
+router.post('/tournament/add-player', verifyJWT, async function(req, res) {
+   await addPlayerToTournament(req.body.pinOrMail, req.body.tournamentId, req.body.faction, res)
+});
+router.delete('/tournament/remove-player', verifyJWT, async function(req, res){
+    await removePlayerFromTournament(req.body.userId, req.body.tournamentId, res)
 });
 
 module.exports = router;

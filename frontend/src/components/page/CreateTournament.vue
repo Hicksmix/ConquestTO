@@ -2,6 +2,7 @@
 import {computed, onMounted, ref} from 'vue';
 import {useAuthStore} from '@/store/auth';
 import {useTournamentStore} from '@/store/tournament';
+import router from "@/router";
 
 const authStore = useAuthStore();
 const tournamentStore = useTournamentStore();
@@ -24,8 +25,9 @@ onMounted(() => {
 async function createTournament() {
   isLoading.value = true;
   try {
-    await tournamentStore.createTournament(name.value, date.value);
+    const tournamentId = await tournamentStore.createTournament(name.value, date.value);
     isLoading.value = false;
+    await router.push({name: "Add Players", params: {id: tournamentId}})
   } catch (error) {
     isLoading.value = false;
   }
@@ -56,7 +58,7 @@ function checkValidity(e) {
   <div class="content m-auto">
     <div class="container-with-background">
       <img src="./../../assets/images/logo.svg">
-      <form class="m-auto login-form" @submit.prevent="createTournament">
+      <form class="m-auto" @submit.prevent="createTournament">
         <h1 class="form-header text-center">CREATE TOURNAMENT</h1>
         <div class="form-field">
           <label for="name" class="form-label">Name</label>
