@@ -7,7 +7,7 @@ export const useTournamentStore = defineStore('tournament', {
         currentTournament: {}
     }),
     actions: {
-        // Führt den Login-Prozess durch
+        undefined,
         async createTournament(name, date) {
             try {
                 const response = await axios.put('/tournament/create', {name, date});
@@ -64,6 +64,71 @@ export const useTournamentStore = defineStore('tournament', {
                 }
             } catch (error) {
                 console.error('Removing player failed:', error);
+                throw error;
+            }
+        },
+        async startTournament(tournamentId) {
+            try {
+                const response = await axios.post('tournament/start', {tournamentId});
+                if (response.data.tournament) {
+                    this.currentTournament = response.data.tournament
+                    return response.data.tournament;
+                }
+            } catch (error) {
+                console.error('Removing player failed:', error);
+                throw error;
+            }
+        },
+        async loadTournamentRound(roundNr) {
+            try {
+                const response = await axios.get('/games/get-tournament-round', {
+                    params: {
+                        tournamentId: this.currentTournament.id,
+                        roundNr
+                    }
+                });
+                if (response.data.games) {
+                    this.currentTournament.games = response.data.games;
+                    return response.data.games;
+                }
+            } catch (error) {
+                console.error('Loading games failed:', error);
+                throw error;
+            }
+        },
+        async endGame(gameId) {
+            try {
+                const response = await axios.put('/games/end', {gameId, tournamentId: this.currentTournament.id});
+                if (response.data) {
+                    this.currentTournament.games[response.data.id] = response.data;
+                    return response.data;
+                }
+            } catch (error) {
+                console.error('Ending game failed:', error);
+                throw error;
+            }
+        },
+        async reopenGame(gameId) {
+            try {
+                const response = await axios.put('/games/reopen', {gameId, tournamentId: this.currentTournament.id});
+                if (response.data) {
+                    this.currentTournament.games[response.data.id] = response.data;
+                    return response.data;
+                }
+            } catch (error) {
+                console.error('Reopening game failed:', error);
+                throw error;
+            }
+        },
+        async updateGame(game) {
+            try {
+                const response = await axios.put('/games/update', {game, tournamentId: this.currentTournament.id});
+                if (response.data) {
+                    this.currentTournament.games[response.data.id] = response.data;
+                    return response.data;
+                }
+            } catch (error) {
+                console.error('Reopening game failed:', error);
                 throw error;
             }
         },

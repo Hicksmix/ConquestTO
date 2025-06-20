@@ -11,7 +11,7 @@ const TournamentUser = require("../model/tournament_user");
 /**
  * Liefert ein Tournament-Objekt für die übergebene ID
  *
- * @param id
+ * @param tournamentId
  * @returns {Promise<Tournament>}
  */
 async function getTournament(tournamentId) {
@@ -36,7 +36,7 @@ async function getPlayerOverView(tournamentId) {
     let conn;
     try {
         conn = await getConnection();
-        let rows = await conn.query('select u.id, u.username, u.pbw_pin, u.email, tu.faction, SoS, sum(case when g.player1 = u.id then score1 else score2 end) as total_score, count(case when g.winner_id = u.id then 1 else null end) as win_count, count(case when g.winner_id != u.id and g.winner_id is not null then 1 else null end) as loss_count, count(case when g.winner_id is null and g.player1 is not null then 1 else null end) as draw_count from tournament_user tu join users u on u.id = tu.user_id left join game g on (u.id = g.player1 or u.id = g.player2) and g.tournament_id = tu.tournament_id left join (select tu.user_id, sum(tournament_pts)/count(tournament_pts) as SoS from tournament_user tu join game g on (tu.user_id = g.player1 or tu.user_id = g.player2) and g.tournament_id = tu.tournament_id join (select ((cast(sum(case when g.winner_id = tu.user_id then 2 else 0 end) as FLOAT) + sum(case when g.winner_id is null then 1 else 0 end)) / count(g.id)) as tournament_pts, tu.user_id as id from tournament_user tu join game g on (tu.user_id = g.player1 or tu.user_id = g.player2) and g.tournament_id = tu.tournament_id where tu.tournament_id = ? group by tu.user_id) tp on tp.id = IF(player1 = tu.user_id, player2, player1) where tu.tournament_id = ? group by tu.user_id) SoSTable on SoSTable.user_id = tu.user_id where tu.tournament_id = ? group by u.id, tu.faction order by win_count DESC, draw_count DESC, SoS DESC, total_score DESC;;', [tournamentId, tournamentId, tournamentId]);
+        let rows = await conn.query('select u.id, u.username, u.pbw_pin, u.email, tu.faction, SoS, sum(case when g.player1 = u.id then score1 else score2 end) as total_score, count(case when g.winner_id = u.id then 1 else null end) as win_count, count(case when g.winner_id != u.id and g.winner_id is not null then 1 else null end) as loss_count, count(case when g.winner_id is null and g.player1 is not null then 1 else null end) as draw_count from tournament_user tu join users u on u.id = tu.user_id left join game g on (u.id = g.player1 or u.id = g.player2) and g.tournament_id = tu.tournament_id left join (select tu.user_id, sum(tournament_pts)/count(tournament_pts) as SoS from tournament_user tu join game g on (tu.user_id = g.player1 or tu.user_id = g.player2) and g.tournament_id = tu.tournament_id join (select ((cast(sum(case when g.winner_id = tu.user_id then 2 else 0 end) as FLOAT) + sum(case when g.winner_id is null then 1 else 0 end)) / count(g.id)) as tournament_pts, tu.user_id as id from tournament_user tu join game g on (tu.user_id = g.player1 or tu.user_id = g.player2) and g.tournament_id = tu.tournament_id where tu.tournament_id = ? group by tu.user_id) tp on tp.id = IF(player1 = tu.user_id, player2, player1) where tu.tournament_id = ? group by tu.user_id) SoSTable on SoSTable.user_id = tu.user_id where tu.tournament_id = ? group by u.id, tu.faction order by win_count DESC, draw_count DESC, SoS DESC, total_score DESC, loss_count DESC, u.id DESC;', [tournamentId, tournamentId, tournamentId]);
         if (rows.length > 0) { // Wenn mind. 1 Ergebnis gefunden wurde
             rows.forEach(row => {
                 result.push(new TournamentUser(row['id'], row['username'], row['pbw_pin'], row['email'], row['faction'], Number(row['win_count']), Number(row['loss_count']), Number(row['draw_count']), Number(row['total_score']), 2 * Number(row['win_count']) + Number(row['draw_count']), Number(row['SoS'])))
@@ -103,7 +103,7 @@ async function createNewTournament(id, name, date, orgaId) {
         let row;
         if (conn) {
             let row = await conn.query('insert into `tournaments` (id, name, orga_id, date, created_at, state) VALUES (?, ?, ?, ?, ?, ?)', [id, name, orgaId, date, new Date(), "created"]);
-            if (row.affectedRows === 1) return true;
+            return row.affectedRows === 1;
         }
     } catch (e) {
         console.log(e);
@@ -119,7 +119,7 @@ async function createTournamentUser(userId, tournamentId, faction) {
         let row;
         if (conn) {
             let row = await conn.query('insert into `tournament_user` (user_id, tournament_id, faction) VALUES (?, ?, ?)', [userId, tournamentId, faction]);
-            if (row.affectedRows === 1) return true;
+            return row.affectedRows === 1;
         }
     } catch (e) {
         console.log(e);
@@ -132,10 +132,26 @@ async function deleteTournamentUser(userId, tournamentId) {
     let conn;
     try {
         conn = await getConnection();
-        let row;
         if (conn) {
             await conn.query('delete from `tournament_user` where user_id = ? and tournament_id = ?', [userId, tournamentId])
             return true;
+        }
+    } catch (e) {
+        console.log(e);
+        return false;
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
+async function setTournamentState(state, tournamentId){
+    let conn;
+    try {
+        conn = await getConnection();
+        let row;
+        if (conn) {
+            row = await conn.query('update `tournaments` set state = ? where id = ?', [state, tournamentId])
+            return row.affectedRows === 1;
         }
     } catch (e) {
         console.log(e);
@@ -152,5 +168,6 @@ module.exports = {
     createNewTournament,
     getPlayerOverView,
     createTournamentUser,
-    deleteTournamentUser
+    deleteTournamentUser,
+    setTournamentState
 }

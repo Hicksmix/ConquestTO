@@ -114,8 +114,8 @@ async function createNewUser(id, username, password, email, pbwPin) {
         conn = await getConnection();
         let row;
         if (conn) {
-            let row = await conn.query('insert into `users` (id, username, email, password, pbw_pin, created_at) VALUES (?, ?, ?, ?, ?, ?)', [id, username, email, password, pbwPin, new Date()]);
-            if (row.affectedRows === 1) return true;
+            row = await conn.query('insert into `users` (id, username, email, password, pbw_pin, created_at) VALUES (?, ?, ?, ?, ?, ?)', [id, username, email, password, pbwPin, new Date()]);
+            return row.affectedRows === 1;
         }
     } catch (e) {
         console.log(e);

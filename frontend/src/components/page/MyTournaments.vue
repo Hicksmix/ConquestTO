@@ -15,6 +15,14 @@ onMounted(async () => {
 
   await tournamentStore.getTournamentsForOrga();
 })
+
+async function openTournament(tournament) {
+  if(tournament.state === 'created') {
+    await router.push({name: 'Add Players', params: {id: tournament.id}});
+  } else {
+    await router.push({name: 'Tournament', params: {id: tournament.id}})
+  }
+}
 </script>
 
 <template>
@@ -23,7 +31,7 @@ onMounted(async () => {
       <img src="./../../assets/images/logo.svg">
       <h1 class="form-header mb-3 text-center">MY TOURNAMENTS</h1>
         <ul class="tournament-cards card-list w-100">
-          <li class="card" v-for="tournament of orgaTournaments" v-on:click="router.push({name: 'Tournament', params: {id: tournament.id}})">
+          <li class="card" v-for="tournament of orgaTournaments" v-on:click="openTournament(tournament)">
             <div class="card-text-container">
               <span class="card-title">{{ tournament.name }}</span>
               <div class="d-flex">

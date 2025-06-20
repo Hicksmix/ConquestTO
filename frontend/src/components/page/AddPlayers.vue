@@ -71,6 +71,18 @@ async function removePlayer(id) {
     isLoading.value = false;
   }
 }
+
+async function startTournament() {
+  isLoading.value = true;
+
+  try {
+    await tournamentStore.startTournament(tournamentId);
+    isLoading.value = false;
+    await router.push({name: 'Tournament', params: {id: tournamentId}});
+  } catch (error) {
+    isLoading.value = false;
+  }
+}
 </script>
 
 <template>
@@ -89,6 +101,7 @@ async function removePlayer(id) {
         </div>
         <div class="form-field">
           <label for="faction" class="form-label">Faction</label>
+          <span class="select-icon pi pi-angle-down"></span>
           <select v-model.trim="faction" id="faction" type="text" name="faction" class="form-control"
                   @input="checkValidity">
             <option value="100K">100K</option>
@@ -120,13 +133,16 @@ async function removePlayer(id) {
             </div>
           </div>
           <button class="icon-button" v-on:click="removePlayer(player.id)">
-            <span class="pi pi-minus-circle fs-3"></span>
+            <span class="pi pi-minus-circle fs-4"></span>
           </button>
         </li>
       </ul>
       <div class="button-container">
-        <button>Start Tourney</button>
-        <button class="button" type="button" :disabled="disableSubmit()"
+        <button type="button" :disabled="tournamentData?.players?.length < 1"
+                :class="{ ['button-loading']: isLoading, ['disabled']: tournamentData?.players?.length < 1 }"
+                v-on:click="startTournament()">Start Tourney
+        </button>
+        <button type="button" :disabled="disableSubmit()"
                 :class="{ ['button-loading']: isLoading, ['disabled']: disableSubmit() }"
                 v-on:click="addPlayer()">Add Player
         </button>

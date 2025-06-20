@@ -58,11 +58,11 @@ onMounted(async () => {
         <button :class="[{disabled: tournamentData.state !== 'created'}]" :disabled="tournamentData.state !== 'created'"
                 v-on:click="router.push({name: 'Add Players', params: {id: tournamentId}})">Add Players
         </button>
-        <button>Rounds</button>
+        <button :class="[{disabled: tournamentData.state === 'created'}]" :disabled="tournamentData.state === 'created'"
+                v-on:click="router.push({name: 'Tournament Round', params: {id: tournamentId}})">Rounds</button>
       </div>
     </div>
   </div>
-
 </template>
 
 <style scoped>

@@ -12,7 +12,7 @@ async function verifyJWT(req, res, next) {
         next();
     } catch (e) {
         res.status(403);
-        res.json({ title: "Fehler", text: "Du musst angemeldet sein, um diesen Inhalt laden zu können", auth: false });
+        res.json({ title: "Error", text: "You must be logged in to view this content", auth: false });
     }
 }
 

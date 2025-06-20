@@ -8,6 +8,7 @@ const routes = [
     { path: '/tournament/my-tournaments', name: 'My Tournaments', component: () => import('../components/page/MyTournaments.vue'), meta: { title: ' - My Tournaments' } },
     { path: '/tournament/:id', name: 'Tournament', component: () => import('../components/page/Tournament.vue'), meta: { title: ' - Tournament' } },
     { path: '/tournament/add-players/:id', name: 'Add Players', component: () => import('../components/page/AddPlayers.vue'), meta: { title: ' - Add Players' } },
+    { path: '/tournament/tournament-round/:id', name: 'Tournament Round', component: () => import('../components/page/TournamentRound.vue'), meta: { title: ' - Round' } },
 ]
 
 const router = createRouter({

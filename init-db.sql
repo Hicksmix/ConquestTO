@@ -20,7 +20,7 @@ CREATE TABLE `users`
 
 CREATE TABLE `game`
 (
-    `id`            varchar(255) PRIMARY KEY,
+    `id`            int PRIMARY KEY AUTO_INCREMENT,
     `player1`       varchar(255) NOT NULL,
     `player2`       varchar(255),
     `tournament_id` varchar(255),
@@ -29,7 +29,8 @@ CREATE TABLE `game`
     `score2`        integer,
     `ended`         bool         NOT NULL,
     `winner_id`     varchar(255),
-    `scenario`      int
+    `scenario`      int,
+    `table_nr`      int
 );
 
 CREATE TABLE `tournament_user`
@@ -151,44 +152,36 @@ VALUES (1, 'QTXgyUemWJREu31ObsxiiJibVYPpBRWJELi8Bokb6tRyr3PFOE3ve5vrXZgysBc0',
        (16, 'JL44muLH7l1oJ1w4GXYibLTsU54mxCLEJUuAr29jYS5iYuDW1Jnb48IH5fa0khaG',
         'C9Y8wreXgrgIat5ssQZfDTycgzALzVX4vLZkCLJaFWH6bpagrC8tIxgEmfQ4rbHJ', 'nords');
 
-INSERT INTO `game` (id, player1, player2, tournament_id, round_nr, score1, score2, ended, winner_id, scenario)
-VALUES ('GCDjHSFC6kVLGOjAALri1XO3aJjoPzY1a8SjX01smTSWE0nJkBnqxjBEh4voEjuu',
-        'QTXgyUemWJREu31ObsxiiJibVYPpBRWJELi8Bokb6tRyr3PFOE3ve5vrXZgysBc0',
+INSERT INTO `game` (player1, player2, tournament_id, round_nr, score1, score2, ended, winner_id, scenario, table_nr)
+VALUES ('QTXgyUemWJREu31ObsxiiJibVYPpBRWJELi8Bokb6tRyr3PFOE3ve5vrXZgysBc0',
         'JF1N8fHZEVcnVJh5P7xGWqEoV7cgxdPaZYIecE5pAktRQuP6QEfjcB9psltfOSm9',
         'C9Y8wreXgrgIat5ssQZfDTycgzALzVX4vLZkCLJaFWH6bpagrC8tIxgEmfQ4rbHJ', 1, 29, 28, true,
-        'QTXgyUemWJREu31ObsxiiJibVYPpBRWJELi8Bokb6tRyr3PFOE3ve5vrXZgysBc0', 5),
-       ('zPKwwXrecXs5hast3ySJTtRI03AbqMRTb2tYEoEz3JiNeabmq3Sg48yCGwYPo1RR',
-        '9bXWXuFVcGeofX1z3PcVvEyuhnzosCOCxuSnwK0IIS7p9envMxkW56TSMT0RFnKR',
+        'QTXgyUemWJREu31ObsxiiJibVYPpBRWJELi8Bokb6tRyr3PFOE3ve5vrXZgysBc0', 5, 1),
+       ('9bXWXuFVcGeofX1z3PcVvEyuhnzosCOCxuSnwK0IIS7p9envMxkW56TSMT0RFnKR',
         'cjX7QnCw6WRVA8pItadW34519ArL0H5kmz5QeGyWPEq67dA13ECOqx8nnILbb5ZP',
         'C9Y8wreXgrgIat5ssQZfDTycgzALzVX4vLZkCLJaFWH6bpagrC8tIxgEmfQ4rbHJ', 1, 22, 23, true,
-        'cjX7QnCw6WRVA8pItadW34519ArL0H5kmz5QeGyWPEq67dA13ECOqx8nnILbb5ZP', 5),
-       ('rJTzgywYN1wsJrSS7XhCejoKclWKLkdViej1DP8DZYGWV2iAGn6RB3nO7h1R5L2w',
-        'x05eywtGTrmndQ0K84aGzJxJegr26dUDIZSMcDSUQWKq1HHuKVEqclCsRK1xMyGx',
+        'cjX7QnCw6WRVA8pItadW34519ArL0H5kmz5QeGyWPEq67dA13ECOqx8nnILbb5ZP', 5, 2),
+       ('x05eywtGTrmndQ0K84aGzJxJegr26dUDIZSMcDSUQWKq1HHuKVEqclCsRK1xMyGx',
         'tmNEiZUac4rj8fdul9K9IZuYVPpdRcs0ixSC2rV5jb0haG0Gn03piuiarbeNnSWc',
         'C9Y8wreXgrgIat5ssQZfDTycgzALzVX4vLZkCLJaFWH6bpagrC8tIxgEmfQ4rbHJ', 1, 17, 11, true,
-        'x05eywtGTrmndQ0K84aGzJxJegr26dUDIZSMcDSUQWKq1HHuKVEqclCsRK1xMyGx', 5),
-       ('ANROBmdhYe9uO1yDyeXU7FwzF6PUJlTBe78pCbhP1uNwoFY8zVcCxJcciwjlwvdx',
-        'UW42nAeqQr5rbLUrbXy9KMe10BcxaaNHQxbBoWJEnQWvxMN0rw2ewIGEQYpGxxha',
+        'x05eywtGTrmndQ0K84aGzJxJegr26dUDIZSMcDSUQWKq1HHuKVEqclCsRK1xMyGx', 5, 3),
+       ('UW42nAeqQr5rbLUrbXy9KMe10BcxaaNHQxbBoWJEnQWvxMN0rw2ewIGEQYpGxxha',
         '2oA8uz0xklQEcjDf6m3ywqbz47BPfvIewIwwrdHlb3B1zyygjQm9SRKPeFhSvgc3',
         'C9Y8wreXgrgIat5ssQZfDTycgzALzVX4vLZkCLJaFWH6bpagrC8tIxgEmfQ4rbHJ', 1, 29, 10, true,
-        'UW42nAeqQr5rbLUrbXy9KMe10BcxaaNHQxbBoWJEnQWvxMN0rw2ewIGEQYpGxxha', 5),
-       ('uOFrwydbTxccvkWO4CykmOfsqdvFr7nsyJDziEfVJiCK6xkklXQyCGlWIHiG8vCI',
-        'kFDS8CfsJIW86OUn96LlYmBp9lNkSXMiFw7N4gBH0MAGUAuqsNKyW4tHSnSp8gKG',
+        'UW42nAeqQr5rbLUrbXy9KMe10BcxaaNHQxbBoWJEnQWvxMN0rw2ewIGEQYpGxxha', 5, 4),
+       ('kFDS8CfsJIW86OUn96LlYmBp9lNkSXMiFw7N4gBH0MAGUAuqsNKyW4tHSnSp8gKG',
         'r88m4tfiH68AGa9pVFQLx7UZDybBHXVYUfJlzo8NipV4w5T5UHB4PYnYydunDgI4',
         'C9Y8wreXgrgIat5ssQZfDTycgzALzVX4vLZkCLJaFWH6bpagrC8tIxgEmfQ4rbHJ', 1, 17, 28, true,
-        'r88m4tfiH68AGa9pVFQLx7UZDybBHXVYUfJlzo8NipV4w5T5UHB4PYnYydunDgI4', 5),
-       ('yD8Ap5WQ0oxVKR4kBm0WREgm81iDb6IF2T06HN0AxZpb60WI6O8PZuLTB1e3KVCq',
-        'u8G6l99oQkZDDgF9EaalxBHC61m1JY2hRWnVhNi0SqyJCoHIbwDAnMKdamr6Ogct',
+        'r88m4tfiH68AGa9pVFQLx7UZDybBHXVYUfJlzo8NipV4w5T5UHB4PYnYydunDgI4', 5, 5),
+       ('u8G6l99oQkZDDgF9EaalxBHC61m1JY2hRWnVhNi0SqyJCoHIbwDAnMKdamr6Ogct',
         'W72ZImvG5lRi4YFJU0ceJavkWtisYA695bz2VhPByBgKYuSB7noT5DbW1EVZKzM0',
         'C9Y8wreXgrgIat5ssQZfDTycgzALzVX4vLZkCLJaFWH6bpagrC8tIxgEmfQ4rbHJ', 1, 2, 19, true,
-        'W72ZImvG5lRi4YFJU0ceJavkWtisYA695bz2VhPByBgKYuSB7noT5DbW1EVZKzM0', 5),
-       ('1TFvhUjGCLquBTxxKzg0JDPrdenggVtmFeZEYucP32vSOq3AuhZGeDPMtg7e2i8f',
-        'MEeKSHrUF7XaS3m1d4dltphev0jUX4kaBXQSqupyv3Y9L580hyJyvAcYC8S7QFIo',
+        'W72ZImvG5lRi4YFJU0ceJavkWtisYA695bz2VhPByBgKYuSB7noT5DbW1EVZKzM0', 5, 6),
+       ('MEeKSHrUF7XaS3m1d4dltphev0jUX4kaBXQSqupyv3Y9L580hyJyvAcYC8S7QFIo',
         'jzCkruWXIOBNAXcNx7kb6Xqjnq9Tlhjuxlp8wtQsOMNA6PQlX0ZaT1M60fyFPLjR',
         'C9Y8wreXgrgIat5ssQZfDTycgzALzVX4vLZkCLJaFWH6bpagrC8tIxgEmfQ4rbHJ', 1, 17, 10, true,
-        'MEeKSHrUF7XaS3m1d4dltphev0jUX4kaBXQSqupyv3Y9L580hyJyvAcYC8S7QFIo', 5),
-       ('FeknbWsEyO0H6Vi7L9iRFCZHDfsc8CenI9J7RWDMWb8sarC4BiHn5vCaCCuk0bkD',
-        'GqtgrBTIGFuh2pATePRdNBMairZuIKrBvmRiwXtiLwt0uexjbriRKhFaqgquI5wI',
+        'MEeKSHrUF7XaS3m1d4dltphev0jUX4kaBXQSqupyv3Y9L580hyJyvAcYC8S7QFIo', 5, 7),
+       ('GqtgrBTIGFuh2pATePRdNBMairZuIKrBvmRiwXtiLwt0uexjbriRKhFaqgquI5wI',
         'JL44muLH7l1oJ1w4GXYibLTsU54mxCLEJUuAr29jYS5iYuDW1Jnb48IH5fa0khaG',
         'C9Y8wreXgrgIat5ssQZfDTycgzALzVX4vLZkCLJaFWH6bpagrC8tIxgEmfQ4rbHJ', 1, 17, 28, true,
-        'JL44muLH7l1oJ1w4GXYibLTsU54mxCLEJUuAr29jYS5iYuDW1Jnb48IH5fa0khaG', 5);
+        'JL44muLH7l1oJ1w4GXYibLTsU54mxCLEJUuAr29jYS5iYuDW1Jnb48IH5fa0khaG', 5, 8);

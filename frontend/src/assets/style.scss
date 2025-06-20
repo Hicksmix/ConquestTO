@@ -28,7 +28,6 @@ button {
 
   &.icon-button {
     background-color: transparent;
-    color: var(--color-text);
     width: fit-content;
     height: fit-content;
     box-shadow: none;
@@ -112,6 +111,7 @@ form {
     display: flex;
     flex-direction: column;
     margin: 0.5rem 0;
+    position: relative;
 
     .form-label {
       margin-bottom: 0.25rem;
@@ -131,6 +131,14 @@ form {
         box-shadow: none;
       }
     }
+
+    .select-icon {
+      color: var(--color-text-light);
+      position: absolute;
+      bottom: 0.325rem;
+      right: 0.325rem;
+      z-index: 1;
+    }
   }
 }
 
@@ -145,4 +153,24 @@ form {
   font-weight: 500;
   font-size: 1rem;
   display: block;
+}
+
+.minimal-input {
+  background: transparent;
+  border: transparent;
+  border-radius: 0.15rem;
+  border-bottom: solid 2px var(--vt-c-divider-dark-2);
+  width: 3rem;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0;
+  color: var(--color-text-light);
+  text-align: end;
+  height: 1.5rem;
+
+  &:focus-visible {
+    background: var(--color-background-2);
+    outline: none;
+    border-bottom: solid 2px var(--vt-c-divider-dark-1);
+  }
 }
