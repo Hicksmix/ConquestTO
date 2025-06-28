@@ -12,7 +12,7 @@ const {
     createTournamentUser,
     deleteTournamentUser,
     setHasReceivedBye,
-    setHasBeenPairedUpDown
+    setHasBeenPairedUpDown, getTeam
 } = require("../database/tournament-user");
 
 
@@ -81,7 +81,7 @@ async function loadTournament(tournamentId, res) {
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
-async function addPlayerToTournament(pinOrMail, tournamentId, faction, res) {
+async function addPlayerToTournament(pinOrMail, tournamentId, faction, teamName, res) {
     const title = "Error adding player to tournament";
 
     if (!(tournamentId?.length > 0) || !(pinOrMail?.length > 0) || !(faction?.length > 0)) {
@@ -94,13 +94,15 @@ async function addPlayerToTournament(pinOrMail, tournamentId, faction, res) {
     if (!user) user = await getUserByMail(pinOrMail);
 
     if (tournament && user && tournament.state === 'created') {
+        await setCurrentRoundFinished(tournamentId, true);
+
         tournament.players = await getPlayerOverView(tournamentId);
         if (tournament.players.filter(player => player.id === user.id).length > 0) {
             res.status(409);
             return res.json({title, text: "Player already added to tournament"});
         }
 
-        const result = await createTournamentUser(user.id, tournamentId, faction);
+        const result = await createTournamentUser(user.id, tournamentId, faction, teamName);
 
         if (result) {
             tournament.players = await getPlayerOverView(tournamentId);
@@ -150,6 +152,35 @@ async function startTournament(tournamentId, orgaId, res) {
     }
 
     if (await setTournamentState("ongoing", tournamentId)) {
+        tournament = await getTournament(tournamentId);
+        return res.json(tournament);
+    }
+
+    res.status(500);
+    return res.json({title, text: "Something went wrong. Please try again later"});
+}
+
+async function endTournament(tournamentId, orgaId, res) {
+    const title = "Error ending tournament";
+
+    if (!(tournamentId?.length > 0) || !(orgaId?.length > 0)) {
+        res.status(400);
+        return res.json({title, text: "Incomplete data"});
+    }
+
+    let tournament = await getTournament(tournamentId);
+
+    if (tournament.orgaId !== orgaId) {
+        res.status(403);
+        return res.json({title, text: "Only the orga can end a tournament"});
+    }
+
+    if (!tournament.currentRoundFinished) {
+        res.status(403);
+        return res.json({title, text: "You cannot end a tournament while a round is still going on"});
+    }
+
+    if (await setTournamentState("ended", tournamentId)) {
         tournament = await getTournament(tournamentId);
         return res.json(tournament);
     }
@@ -210,12 +241,18 @@ async function startNewRound(tournamentId, orgaId, res) {
                 score: player.TP + (player.SoS / 10),
                 pairedUpDown: player.pairedUpDown,
                 receivedBye: player.receivedBye,
-                TP: player.TP
+                TP: player.TP,
+                teamName: player.teamName,
             };
         });
 
         for (const player of players) {
-            player.avoid = await getMatchupsToAvoidForTournamentUser(player.id, tournamentId);
+            if (tournament.currentRound !== 1)
+                player.avoid = await getMatchupsToAvoidForTournamentUser(player.id, tournamentId);
+            else if (player.teamName) {
+                let team = (await getTeam(player.teamName, tournamentId));
+                player.avoid = team;
+            }
         }
 
         let games = Swiss(players, tournament.currentRound);
@@ -278,5 +315,6 @@ module.exports = {
     startTournament,
     endTournamentRound,
     startNewRound,
-    checkCanEndRound
+    checkCanEndRound,
+    endTournament
 }

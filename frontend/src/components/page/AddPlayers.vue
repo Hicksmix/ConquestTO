@@ -18,6 +18,7 @@ const factionIcons = Object.fromEntries(
 const tournamentId = route.params.id
 const pinOrMail = ref('');
 const faction = ref('');
+const team = ref('');
 const isLoading = ref(false)
 
 onMounted(async () => {
@@ -52,10 +53,11 @@ async function addPlayer() {
   isLoading.value = true;
 
   try {
-    await tournamentStore.addPlayerToTournament(pinOrMail.value, tournamentId, faction.value);
+    await tournamentStore.addPlayerToTournament(pinOrMail.value, tournamentId, faction.value, team.value);
     isLoading.value = false;
     pinOrMail.value = '';
     faction.value = '';
+    team.value = '';
   } catch (error) {
     isLoading.value = false;
   }
@@ -96,11 +98,11 @@ async function startTournament() {
       </div>
       <form class="m-auto mb-3 w-75">
         <div class="form-field">
-          <label for="pinOrMail" class="form-label">PBW Pin or Email address</label>
+          <label for="pinOrMail" class="form-label">PBW Pin or Email address*</label>
           <input v-model.trim="pinOrMail" id="pinOrMail" type="text" class="form-control" @input="checkValidity">
         </div>
         <div class="form-field">
-          <label for="faction" class="form-label">Faction</label>
+          <label for="faction" class="form-label">Faction*</label>
           <span class="select-icon pi pi-angle-down"></span>
           <select v-model.trim="faction" id="faction" type="text" name="faction" class="form-control"
                   @input="checkValidity">
@@ -110,9 +112,14 @@ async function startTournament() {
             <option value="nords">Nords</option>
             <option value="wadrhun">W’adrhŭn</option>
             <option value="old_dominion">Old Dominion</option>
+            <option value="city_states">City States</option>
             <option value="sorcerer_kings">Sorcerer Kings</option>
             <option value="Yoroni">Yoroni</option>
           </select>
+        </div>
+        <div class="form-field">
+          <label for="team" class="form-label">Team</label>
+          <input v-model.trim="team" id="team" type="text" class="form-control">
         </div>
       </form>
       <span class="sub-header">Added players</span>
@@ -122,10 +129,10 @@ async function startTournament() {
             <div class="placement">{{ index + 1 }}</div>
             <div class="card-text-container text-truncate">
               <div class="text-truncate">
-                <span class="card-title">{{ player.username }}</span>
+                <span class="card-title text-truncate">{{ player.username }} {{player.teamName ? `(${player.teamName})` : null}}</span>
               </div>
               <div class="d-flex">
-                <span class="fs-6 text-truncate"> {{ player.pbwPin ? player.pbwPin : player.email }}</span>
+                <span class="fs-6 text-truncate">{{ player.pbwPin ? player.pbwPin : player.email }}</span>
               </div>
             </div>
             <div class="faction-icon-container">

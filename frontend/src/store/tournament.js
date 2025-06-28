@@ -43,9 +43,9 @@ export const useTournamentStore = defineStore('tournament', {
                 throw error;
             }
         },
-        async addPlayerToTournament(pinOrMail, tournamentId, faction) {
+        async addPlayerToTournament(pinOrMail, tournamentId, faction, teamName) {
             try {
-                const response = await axios.post('tournament/add-player', {pinOrMail, tournamentId, faction});
+                const response = await axios.post('tournament/add-player', {pinOrMail, tournamentId, faction, teamName});
                 if (response.data.tournament) {
                     this.currentTournament = response.data.tournament
                     return response.data.tournament;
@@ -70,6 +70,18 @@ export const useTournamentStore = defineStore('tournament', {
         async startTournament(tournamentId) {
             try {
                 const response = await axios.post('tournament/start', {tournamentId});
+                if (response.data.tournament) {
+                    this.currentTournament = response.data.tournament
+                    return response.data.tournament;
+                }
+            } catch (error) {
+                console.error('Removing player failed:', error);
+                throw error;
+            }
+        },
+        async endTournament(tournamentId) {
+            try {
+                const response = await axios.post('tournament/end', {tournamentId});
                 if (response.data.tournament) {
                     this.currentTournament = response.data.tournament
                     return response.data.tournament;

@@ -55,6 +55,10 @@ async function selectRound(round) {
   roundNr.value = round;
   await tournamentStore.loadTournamentRound(roundNr.value);
 }
+
+async function endTournament() {
+  await tournamentStore.endTournament(tournamentId);
+}
 </script>
 
 <template>
@@ -106,7 +110,7 @@ async function selectRound(round) {
       <div class="round-select">
         <span class="pi pi-angle-left"></span>
         <span v-for="index in tournamentData.currentRound" :class="[{'active': index === roundNr}]" v-on:click="selectRound(index)">{{ index }}</span>
-        <span v-if="tournamentData.currentRoundFinished" class="new-round" v-on:click="startNewRound()">{{
+        <span v-if="tournamentData.currentRoundFinished && tournamentData.state === 'ongoing'" class="new-round" v-on:click="startNewRound()">{{
             tournamentData.currentRound + 1
           }}</span>
         <span class="pi pi-angle-right"></span>
@@ -117,7 +121,7 @@ async function selectRound(round) {
         <button v-if="!tournamentData.currentRoundFinished" :class="[{'disabled': !tournamentData.canEndRound}]"
                 v-on:click="endRound()">End Round
         </button>
-        <button v-else>End Tourney</button>
+        <button v-else v-on:click="endTournament()">End Tourney</button>
       </div>
     </div>
   </div>

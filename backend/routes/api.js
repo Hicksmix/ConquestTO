@@ -9,7 +9,7 @@ const {verifyJWT} = require("../src/middleware/verifyJWT");
 const {login, register} = require("../src/controller/user")
 const {
     loadTournamentsForOrga, createTournament, loadTournament, addPlayerToTournament, removePlayerFromTournament,
-    startTournament, endTournamentRound, startNewRound
+    startTournament, endTournamentRound, startNewRound, endTournament
 } = require("../src/controller/tournament")
 const {loadRoundForTournament, endGame, reopenGame, updateGamePartial} = require("../src/controller/game");
 let router = express.Router();
@@ -31,13 +31,16 @@ router.get('/tournament/get-tournament', verifyJWT, async function (req, res) {
     await loadTournament(req.query.tournamentId, res)
 });
 router.post('/tournament/add-player', verifyJWT, async function (req, res) {
-    await addPlayerToTournament(req.body.pinOrMail, req.body.tournamentId, req.body.faction, res)
+    await addPlayerToTournament(req.body.pinOrMail, req.body.tournamentId, req.body.faction, req.body.teamName, res)
 });
 router.delete('/tournament/remove-player', verifyJWT, async function (req, res) {
     await removePlayerFromTournament(req.body.userId, req.body.tournamentId, res)
 });
 router.post('/tournament/start', verifyJWT, async function (req, res) {
     await startTournament(req.body.tournamentId, verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
+});
+router.post('/tournament/end', verifyJWT, async function (req, res) {
+    await endTournament(req.body.tournamentId, verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
 });
 router.post('/tournament/end-round', verifyJWT, async function(req, res) {
     await endTournamentRound(req.body.tournamentId, verify(req.query.jwt, process.env.JWT_SECRET).userid, res)

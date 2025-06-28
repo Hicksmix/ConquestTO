@@ -1,12 +1,12 @@
 const getConnection = require("./connection");
 
 
-async function createTournamentUser(userId, tournamentId, faction) {
+async function createTournamentUser(userId, tournamentId, faction, teamName) {
     let conn;
     try {
         conn = await getConnection();
         if (conn) {
-            const row = await conn.query('insert into `tournament_user` (user_id, tournament_id, faction) VALUES (?, ?, ?)', [userId, tournamentId, faction]);
+            const row = await conn.query('insert into `tournament_user` (user_id, tournament_id, faction, team_name) VALUES (?, ?, ?, ?)', [userId, tournamentId, faction, teamName]);
             return row.affectedRows === 1;
         }
         return null;
@@ -65,9 +65,30 @@ async function setHasBeenPairedUpDown(playerId, tournamentId, hasBeenPairedUpDow
     }
 }
 
+async function getTeam(teamName, tournamentId) {
+    let conn;
+    try {
+        conn = await getConnection();
+        let result = [];
+        if (conn) {
+            let rows = await conn.query('Select user_id from tournament_user where team_name = ? and tournament_id = ?', [teamName, tournamentId])
+            if (rows.length > 0) { // Wenn mind. 1 Ergebnis gefunden wurde
+                rows.forEach((row) => result.push(row['user_id']));
+            }
+            return result;
+        }
+    } catch (e) {
+        console.log(e);
+        return false;
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
 module.exports = {
     createTournamentUser,
     deleteTournamentUser,
     setHasReceivedBye,
-    setHasBeenPairedUpDown
+    setHasBeenPairedUpDown,
+    getTeam
 }
