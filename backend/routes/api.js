@@ -9,7 +9,7 @@ const {verifyJWT} = require("../src/middleware/verifyJWT");
 const {login, register} = require("../src/controller/user")
 const {
     loadTournamentsForOrga, createTournament, loadTournament, addPlayerToTournament, removePlayerFromTournament,
-    startTournament
+    startTournament, endTournamentRound, startNewRound
 } = require("../src/controller/tournament")
 const {loadRoundForTournament, endGame, reopenGame, updateGamePartial} = require("../src/controller/game");
 let router = express.Router();
@@ -38,6 +38,12 @@ router.delete('/tournament/remove-player', verifyJWT, async function (req, res) 
 });
 router.post('/tournament/start', verifyJWT, async function (req, res) {
     await startTournament(req.body.tournamentId, verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
+});
+router.post('/tournament/end-round', verifyJWT, async function(req, res) {
+    await endTournamentRound(req.body.tournamentId, verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
+});
+router.post('/tournament/start-round', verifyJWT, async function(req, res) {
+    await startNewRound(req.body.tournamentId, verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
 });
 
 router.get('/games/get-tournament-round', verifyJWT, async function (req, res) {

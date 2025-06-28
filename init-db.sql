@@ -1,11 +1,13 @@
 CREATE TABLE `tournaments`
 (
-    `id`         varchar(255) PRIMARY KEY,
-    `name`       varchar(255) NOT NULL,
-    `date`       date         NOT NULL,
-    `orga_id`    varchar(255) NOT NULL,
-    `state`      varchar(7)   NOT NULL,
-    `created_at` timestamp
+    `id`                     varchar(255) PRIMARY KEY,
+    `name`                   varchar(255) NOT NULL,
+    `date`                   date         NOT NULL,
+    `orga_id`                varchar(255) NOT NULL,
+    `state`                  varchar(7)   NOT NULL,
+    `current_round`          int,
+    `current_round_finished` bool,
+    `created_at`             timestamp
 );
 
 CREATE TABLE `users`
@@ -14,7 +16,7 @@ CREATE TABLE `users`
     `username`   varchar(255) NOT NULL UNIQUE,
     `email`      varchar(255) NOT NULL UNIQUE,
     `password`   varchar(255) NOT NULL,
-    `pbw_pin`    varchar(255) UNIQUE,
+    `pbw_pin`    varchar(6) UNIQUE,
     `created_at` timestamp
 );
 
@@ -27,7 +29,7 @@ CREATE TABLE `game`
     `round_nr`      integer,
     `score1`        integer,
     `score2`        integer,
-    `ended`         bool         NOT NULL,
+    `ended`         bool,
     `winner_id`     varchar(255),
     `scenario`      int,
     `table_nr`      int
@@ -35,10 +37,13 @@ CREATE TABLE `game`
 
 CREATE TABLE `tournament_user`
 (
-    `id`            int PRIMARY KEY AUTO_INCREMENT,
-    `user_id`       varchar(255) NOT NULL,
-    `tournament_id` varchar(255) NOT NULL,
-    `faction`       varchar(255) NOT NULL
+    `id`                      int PRIMARY KEY AUTO_INCREMENT,
+    `user_id`                 varchar(255) NOT NULL,
+    `tournament_id`           varchar(255) NOT NULL,
+    `faction`                 varchar(20) NOT NULL,
+    `has_received_bye`        bool,
+    `has_been_paired_up_down` bool,
+    `team_name`               varchar(255)
 );
 
 ALTER TABLE `tournaments`
@@ -102,21 +107,21 @@ VALUES ('4pjZnsYaJAZzdJDhCivicbZoNR5TL1QLyg1Ez3wvTsOsv1EjqjdLJVZ1uvH7lrpe', 'Hic
        ('JL44muLH7l1oJ1w4GXYibLTsU54mxCLEJUuAr29jYS5iYuDW1Jnb48IH5fa0khaG', 'Nico', 'test52@gmail.de',
         'e632b7095b0bf32c260fa4c539e9fd7b852d0de454e9be26f24d0d6f91d069d3', '09DU7', '2025-06-02 10:22:41');
 
-INSERT INTO `tournaments` (id, name, date, orga_id, state, created_at)
+INSERT INTO `tournaments` (id, name, date, orga_id, state, current_round, current_round_finished, created_at)
 VALUES ('eIbSnHxZpqOichhx6pFzTBLF8hmaTggPUmjbinskLhxwFgibVxwrR7QZLwzFDhDz', 'Victorum Liubice II', '2024-01-08',
-        '4pjZnsYaJAZzdJDhCivicbZoNR5TL1QLyg1Ez3wvTsOsv1EjqjdLJVZ1uvH7lrpe', 'ended', '2025-06-02 10:22:41'),
+        '4pjZnsYaJAZzdJDhCivicbZoNR5TL1QLyg1Ez3wvTsOsv1EjqjdLJVZ1uvH7lrpe', 'ended', 0, true, '2025-06-02 10:22:41'),
        ('WBfgC3rVDfQQPDhOJv2uZJjlqAvB05FtI83sVMb82EhpX1olbXmML2ZZGIZe1yOi', 'Victorum Liubice III', '2024-05-05',
-        '4pjZnsYaJAZzdJDhCivicbZoNR5TL1QLyg1Ez3wvTsOsv1EjqjdLJVZ1uvH7lrpe', 'ended', '2025-06-02 10:22:41'),
+        '4pjZnsYaJAZzdJDhCivicbZoNR5TL1QLyg1Ez3wvTsOsv1EjqjdLJVZ1uvH7lrpe', 'ended', 0, true, '2025-06-02 10:22:41'),
        ('sZBkDuyWfLC7tGjyXhUppvEBAbHYI80OlXj7zqoi5av6RIIEuRKrv8VBMq3OFoD2', 'Victorum Liubice IV', '2024-09-15',
-        '4pjZnsYaJAZzdJDhCivicbZoNR5TL1QLyg1Ez3wvTsOsv1EjqjdLJVZ1uvH7lrpe', 'ended', '2025-06-02 10:22:41'),
+        '4pjZnsYaJAZzdJDhCivicbZoNR5TL1QLyg1Ez3wvTsOsv1EjqjdLJVZ1uvH7lrpe', 'ended', 0, true, '2025-06-02 10:22:41'),
        ('4oPN58gerSQumySQvw0ap2WguOhgh7f8UcqMGEabBDd7szpxuayeinxRWmWvyYX7', 'Victorum Liubice V', '2024-11-16',
-        '4pjZnsYaJAZzdJDhCivicbZoNR5TL1QLyg1Ez3wvTsOsv1EjqjdLJVZ1uvH7lrpe', 'ended', '2025-06-02 10:22:41'),
+        '4pjZnsYaJAZzdJDhCivicbZoNR5TL1QLyg1Ez3wvTsOsv1EjqjdLJVZ1uvH7lrpe', 'ended', 0, true, '2025-06-02 10:22:41'),
        ('C9Y8wreXgrgIat5ssQZfDTycgzALzVX4vLZkCLJaFWH6bpagrC8tIxgEmfQ4rbHJ', 'Victorum Liubice VI', '2025-04-13',
-        '4pjZnsYaJAZzdJDhCivicbZoNR5TL1QLyg1Ez3wvTsOsv1EjqjdLJVZ1uvH7lrpe', 'ended', '2025-06-02 10:22:41'),
+        '4pjZnsYaJAZzdJDhCivicbZoNR5TL1QLyg1Ez3wvTsOsv1EjqjdLJVZ1uvH7lrpe', 'ongoing', 1, false, '2025-06-02 10:22:41'),
        ('Y8rHd7IBTEec3odkUaByzavofSV0LH3ThWIZV1tP8nd5ZTGvX4dG59C1MtRPNFBQ', 'Test Tournament Created', '2025-06-02',
-        '4pjZnsYaJAZzdJDhCivicbZoNR5TL1QLyg1Ez3wvTsOsv1EjqjdLJVZ1uvH7lrpe', 'created', '2025-06-02 10:22:41'),
+        '4pjZnsYaJAZzdJDhCivicbZoNR5TL1QLyg1Ez3wvTsOsv1EjqjdLJVZ1uvH7lrpe', 'created', 0, false, '2025-06-02 10:22:41'),
        ('B6k902OHoNasoDmL0kGAsylNgBPKvEOK5iSEsIeFC2jH2LLeoEpuv6HnhBdGRk3S', 'Test Tournament Ongoing', '2025-06-01',
-        '4pjZnsYaJAZzdJDhCivicbZoNR5TL1QLyg1Ez3wvTsOsv1EjqjdLJVZ1uvH7lrpe', 'ongoing', '2025-06-02 10:22:41');
+        '4pjZnsYaJAZzdJDhCivicbZoNR5TL1QLyg1Ez3wvTsOsv1EjqjdLJVZ1uvH7lrpe', 'ongoing', 0, false, '2025-06-02 10:22:41');
 
 INSERT INTO `tournament_user` (id, user_id, tournament_id, faction)
 VALUES (1, 'QTXgyUemWJREu31ObsxiiJibVYPpBRWJELi8Bokb6tRyr3PFOE3ve5vrXZgysBc0',

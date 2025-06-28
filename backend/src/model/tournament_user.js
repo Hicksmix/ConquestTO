@@ -14,8 +14,10 @@ class TournamentUser {
     VP;
     TP;
     SoS;
+    pairedUpDown;
+    receivedBye;
 
-    constructor(id, username, pbwPin, email, faction, winCount, lossCount, drawCount, VP, TP, SoS) {
+    constructor(id, username, pbwPin, email, faction, winCount, lossCount, drawCount, VP, TP, SoS, pairedUpDown, receivedBye) {
         this.id = id;
         this.username = username;
         this.pbwPin = pbwPin;
@@ -27,6 +29,8 @@ class TournamentUser {
         this.SoS = SoS;
         this.TP = TP;
         this.VP = VP;
+        this.pairedUpDown = pairedUpDown;
+        this.receivedBye = receivedBye;
     }
 }
 

@@ -100,8 +100,8 @@ export const useTournamentStore = defineStore('tournament', {
             try {
                 const response = await axios.put('/games/end', {gameId, tournamentId: this.currentTournament.id});
                 if (response.data) {
-                    this.currentTournament.games[response.data.id] = response.data;
-                    return response.data;
+                    this.currentTournament = response.data.tournament;
+                    return response.data.tournament;
                 }
             } catch (error) {
                 console.error('Ending game failed:', error);
@@ -112,8 +112,8 @@ export const useTournamentStore = defineStore('tournament', {
             try {
                 const response = await axios.put('/games/reopen', {gameId, tournamentId: this.currentTournament.id});
                 if (response.data) {
-                    this.currentTournament.games[response.data.id] = response.data;
-                    return response.data;
+                    this.currentTournament = response.data.tournament;
+                    return response.data.tournament;
                 }
             } catch (error) {
                 console.error('Reopening game failed:', error);
@@ -132,5 +132,29 @@ export const useTournamentStore = defineStore('tournament', {
                 throw error;
             }
         },
+        async endTournamentRound() {
+            try {
+                const response = await axios.post('/tournament/end-round', {tournamentId: this.currentTournament.id});
+                if (response.data) {
+                    this.currentTournament = response.data
+                    return response.data;
+                }
+            } catch (error) {
+                console.error('Removing player failed:', error);
+                throw error;
+            }
+        },
+        async startTournamentRound() {
+            try {
+                const response = await axios.post('/tournament/start-round', {tournamentId: this.currentTournament.id});
+                if (response.data) {
+                    this.currentTournament = response.data
+                    return response.data;
+                }
+            } catch (error) {
+                console.error('Removing player failed:', error);
+                throw error;
+            }
+        }
     },
 });

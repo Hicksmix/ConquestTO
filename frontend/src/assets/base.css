@@ -45,6 +45,13 @@
     --color-text-disabled: #677685;
 
     --section-gap: 160px;
+
+    --color-success-20: rgba(0, 255, 0, 0.2);
+    --color-error-15: rgba(255, 0, 0, 0.15);
+    --color-warning-15: rgba(255, 255, 0, 0.15);
+
+
+    --color-active: rgba(0, 255, 0, 0.7);
 }
 
 /*@media (prefers-color-scheme: dark) {*/

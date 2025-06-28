@@ -6,6 +6,7 @@ import {useAuthStore} from '@/store/auth';
 import {useTournamentStore} from '@/store/tournament';
 import {useRoute} from "vue-router";
 
+
 const route = useRoute();
 const authStore = useAuthStore();
 const tournamentStore = useTournamentStore()
@@ -35,6 +36,24 @@ function saveGame(game) {
   else if (game.score2 > game.score1) game.winnerId = game.player2Id;
   else game.winnerId = null;
   tournamentStore.updateGame(game);
+}
+
+function endRound() {
+  if (tournamentData.value.canEndRound) {
+    tournamentStore.endTournamentRound();
+  }
+}
+
+async function startNewRound() {
+  if (tournamentData.value.currentRoundFinished) {
+    await tournamentStore.startTournamentRound();
+    roundNr.value = tournamentData.value.currentRound
+  }
+}
+
+async function selectRound(round) {
+  roundNr.value = round;
+  await tournamentStore.loadTournamentRound(roundNr.value);
 }
 </script>
 
@@ -73,19 +92,32 @@ function saveGame(game) {
               </div>
             </div>
           </div>
-          <button class="icon-button" v-if="!game.ended" v-on:click="endGame(game.id)">
-            <span class="pi pi-check-circle fs-4"></span>
-          </button>
-          <button class="icon-button" v-else v-on:click="reopenGame(game.id)">
-            <span class="pi pi-pen-to-square fs-4"></span>
-          </button>
+          <div
+              v-if="!tournamentData.ended && tournamentData.currentRound === roundNr && !tournamentData.currentRoundFinished">
+            <button class="icon-button" v-if="!game.ended" v-on:click="endGame(game.id)">
+              <span class="pi pi-check-circle fs-4"></span>
+            </button>
+            <button class="icon-button" v-else v-on:click="reopenGame(game.id)">
+              <span class="pi pi-pen-to-square fs-4"></span>
+            </button>
+          </div>
         </li>
       </ul>
+      <div class="round-select">
+        <span class="pi pi-angle-left"></span>
+        <span v-for="index in tournamentData.currentRound" :class="[{'active': index === roundNr}]" v-on:click="selectRound(index)">{{ index }}</span>
+        <span v-if="tournamentData.currentRoundFinished" class="new-round" v-on:click="startNewRound()">{{
+            tournamentData.currentRound + 1
+          }}</span>
+        <span class="pi pi-angle-right"></span>
+      </div>
       <div class="button-container">
-        <button v-on:click="router.push({name: 'Tournament', params: {id: tournamentId}})">Overview
+        <button v-on:click="router.push({name: 'Tournament', params: {id: tournamentId}})">Back
         </button>
-        <button>Previous</button>
-        <button>Next</button>
+        <button v-if="!tournamentData.currentRoundFinished" :class="[{'disabled': !tournamentData.canEndRound}]"
+                v-on:click="endRound()">End Round
+        </button>
+        <button v-else>End Tourney</button>
       </div>
     </div>
   </div>
@@ -104,7 +136,6 @@ function saveGame(game) {
       overflow: auto;
       height: 100%;
 
-
       .card-container {
         display: flex;
         flex-direction: row;
@@ -122,15 +153,15 @@ function saveGame(game) {
           }
 
           .draw {
-            background-color: rgba(255, 255, 0, 0.15);
+            background-color: var(--color-warning-15);
           }
 
           .winner {
-            background-color: rgba(0, 255, 0, 0.20);
+            background-color: var(--color-success-20);
           }
 
           .loser {
-            background-color: rgba(255, 0, 0, 0.15);
+            background-color: var(--color-error-15);
           }
 
           .winner-crown {
@@ -138,6 +169,25 @@ function saveGame(game) {
             display: flex;
             align-items: center;
           }
+        }
+      }
+    }
+
+    .round-select {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      > span {
+        font-size: 1.25rem;
+        font-weight: 600;
+
+        &.active {
+          color: var(--color-active);
+        }
+
+        &.new-round {
+          color: var(--color-text-disabled)
         }
       }
     }

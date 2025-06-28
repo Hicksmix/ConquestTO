@@ -1,5 +1,6 @@
 const {getGamesForTournamentRound, getGameWithPlayerNames, setGameEnded, updateGame} = require("../database/game");
-const {getTournament} = require("../database/tournament");
+const {getTournament, getPlayerOverView} = require("../database/tournament");
+const {checkCanEndRound} = require("./tournament");
 
 async function loadRoundForTournament(tournamentId, roundNr, res) {
     const title = "Error loading tournament round";
@@ -24,19 +25,28 @@ async function endGame(gameId, userId, tournamentId, res) {
         return res.json({title, text: "Incomplete data"});
     }
 
-    let game = await getGameWithPlayerNames(gameId);
+    const game = await getGameWithPlayerNames(gameId);
+    let tournament = await getTournament(tournamentId);
 
-    let tournament = null;
-    if (tournamentId) tournament = await getTournament(tournamentId);
-
-    if ((tournament && tournament.orgaId !== userId) && game.player1Id !== userId && game.player2Id !== userId) {
+    if (tournament?.orgaId !== userId && game.player1Id !== userId && game.player2Id !== userId) {
         res.status(403);
         return res.json({title, text: "Only the organizer or participants can end a game"});
     }
 
     if (await setGameEnded(gameId, true)) {
-        game = await getGameWithPlayerNames((gameId));
-        return res.json(game);
+        if (tournament) {
+            let games = await getGamesForTournamentRound(tournamentId, game.roundNr);
+
+            games = games.reduce(function (map, obj) {
+                map[obj.id] = obj;
+                return map;
+            }, {});
+            tournament.games = games;
+
+            tournament.players = await getPlayerOverView(tournamentId);
+            tournament.canEndRound = await checkCanEndRound(tournament);
+            return res.json({tournament});
+        }
     }
 
     res.status(500);
@@ -53,19 +63,28 @@ async function reopenGame(gameId, userId, tournamentId, res) {
         return res.json({title, text: "Incomplete data"});
     }
 
-    let game = await getGameWithPlayerNames(gameId);
+    const game = await getGameWithPlayerNames(gameId);
+    const tournament = await getTournament(tournamentId);
 
-    let tournament = null;
-    if (tournamentId) tournament = await getTournament(tournamentId);
-
-    if ((tournament && tournament.orgaId !== userId) && game.player1Id !== userId && game.player2Id !== userId) {
+    if (tournament?.orgaId !== userId && game.player1Id !== userId && game.player2Id !== userId) {
         res.status(403);
         return res.json({title, text: "Only the organizer or participants can reopen a game"});
     }
 
     if (await setGameEnded(gameId, false)) {
-        game = await getGameWithPlayerNames((gameId));
-        return res.json(game);
+        if (tournament) {
+            let games = await getGamesForTournamentRound(tournamentId, game.roundNr);
+
+            games = games.reduce(function (map, obj) {
+                map[obj.id] = obj;
+                return map;
+            }, {});
+            tournament.games = games;
+
+            tournament.players = await getPlayerOverView(tournamentId);
+            tournament.canEndRound = await checkCanEndRound(tournament);
+            return res.json({tournament});
+        }
     }
 
     res.status(500);
