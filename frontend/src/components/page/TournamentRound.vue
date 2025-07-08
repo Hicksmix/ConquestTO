@@ -67,7 +67,7 @@ async function endTournament() {
       <img src="./../../assets/images/logo.svg">
       <div class="mb-3">
         <h1 class="form-header m-0 text-center">{{ tournamentData.name }}</h1>
-        <span class="sub-header text-center">{{ tournamentData.date }} | {{ tournamentData.state }}</span>
+        <span class="sub-header text-center">{{ new Date(tournamentData.date).toLocaleString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) }} | {{ tournamentData.state }}</span>
       </div>
       <span class="sub-header">Matches</span>
       <ul class="card-list w-100">
@@ -108,20 +108,25 @@ async function endTournament() {
         </li>
       </ul>
       <div class="round-select">
-        <span class="pi pi-angle-left"></span>
-        <span v-for="index in tournamentData.currentRound" :class="[{'active': index === roundNr}]" v-on:click="selectRound(index)">{{ index }}</span>
-        <span v-if="tournamentData.currentRoundFinished && tournamentData.state === 'ongoing'" class="new-round" v-on:click="startNewRound()">{{
+        <span class="pi pi-angle-left" v-on:click="selectRound(roundNr - 1)" :class="[{'disabled': roundNr <= 1}]"
+              :disabled="roundNr <= 1"></span>
+        <span v-for="index in tournamentData.currentRound" :class="[{'active': index === roundNr}]"
+              v-on:click="selectRound(index)">{{ index }}</span>
+        <span v-if="tournamentData.currentRoundFinished && tournamentData.state === 'ongoing'" class="new-round"
+              v-on:click="startNewRound()">{{
             tournamentData.currentRound + 1
           }}</span>
-        <span class="pi pi-angle-right"></span>
+        <span class="pi pi-angle-right" v-on:click="selectRound(roundNr + 1)"
+              :class="[{'disabled': roundNr >= tournamentData.currentRound}]"
+              :disabled="roundNr >= tournamentData.currentRound"></span>
       </div>
       <div class="button-container">
-        <button v-on:click="router.push({name: 'Tournament', params: {id: tournamentId}})">Back
+        <button v-on:click="router.push({name: 'Tournament', params: {id: tournamentId}})">Overview
         </button>
         <button v-if="!tournamentData.currentRoundFinished" :class="[{'disabled': !tournamentData.canEndRound}]"
-                v-on:click="endRound()">End Round
+                :disabled="!tournamentData.canEndRound" v-on:click="endRound()">End Round
         </button>
-        <button v-else v-on:click="endTournament()">End Tourney</button>
+        <button v-else v-if="tournamentData.state === 'ongoing'" v-on:click="endTournament()">End Tourney</button>
       </div>
     </div>
   </div>

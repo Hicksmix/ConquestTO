@@ -35,7 +35,7 @@ async function openTournament(tournament) {
             <div class="card-text-container">
               <span class="card-title">{{ tournament.name }}</span>
               <div class="d-flex">
-                <span>{{ tournament.date }}</span>
+                <span>{{ new Date(tournament.date).toLocaleString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) }}</span>
                 <span class="ms-auto me-1">{{ tournament.state }}</span>
               </div>
             </div>

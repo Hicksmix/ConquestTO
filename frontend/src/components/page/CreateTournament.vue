@@ -17,7 +17,7 @@ const isLoading = ref(false);
  * Ruft checkValidity auf -> Überprüfung der Gültigkeit der Eingaben
  */
 onMounted(() => {
-  //if (!isAuthenticated.value) router.push({ name: 'Profile' });
+  if (!isAuthenticated.value) router.push({ name: 'Login' });
   checkValidity({target: document.getElementById('name')});
   checkValidity({target: document.getElementById('date')});
 })

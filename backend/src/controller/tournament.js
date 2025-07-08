@@ -152,12 +152,21 @@ async function startTournament(tournamentId, orgaId, res) {
     }
 
     if (await setTournamentState("ongoing", tournamentId)) {
-        tournament = await getTournament(tournamentId);
-        return res.json(tournament);
-    }
+        if (await setCurrentRound(tournamentId, tournament.currentRound + 1) && await setCurrentRoundFinished(tournamentId, false)) {
+            tournament = await getTournament(tournamentId);
 
-    res.status(500);
-    return res.json({title, text: "Something went wrong. Please try again later"});
+            tournament.games = await createMatchups(tournament);
+
+            if (await createGames(tournament.games)) {
+                tournament.games = await getGamesForTournamentRound(tournament.id, tournament.currentRound);
+                tournament.canEndRound = false;
+                return res.json(tournament);
+            }
+        }
+
+        res.status(500);
+        return res.json({title, text: "Something went wrong. Please try again later"});
+    }
 }
 
 async function endTournament(tournamentId, orgaId, res) {
@@ -233,65 +242,11 @@ async function startNewRound(tournamentId, orgaId, res) {
     if (tournament.currentRoundFinished && await setCurrentRound(tournamentId, tournament.currentRound + 1) && await setCurrentRoundFinished(tournamentId, false)) {
         tournament = await getTournament(tournamentId);
 
-        let players = await getPlayerOverView(tournamentId);
-
-        players = players.map((player) => {
-            return {
-                id: player.id,
-                score: player.TP + (player.SoS / 10),
-                pairedUpDown: player.pairedUpDown,
-                receivedBye: player.receivedBye,
-                TP: player.TP,
-                teamName: player.teamName,
-            };
-        });
-
-        for (const player of players) {
-            if (tournament.currentRound !== 1)
-                player.avoid = await getMatchupsToAvoidForTournamentUser(player.id, tournamentId);
-            else if (player.teamName) {
-                let team = (await getTeam(player.teamName, tournamentId));
-                player.avoid = team;
-            }
-        }
-
-        let games = Swiss(players, tournament.currentRound);
-
-        games.filter((game) => !game.player2).forEach((g) => setHasReceivedBye(g.player1, tournamentId, true));
-
-        let p1;
-        let p2;
-        games.forEach((game) => {
-                p1 = players.find((p) => p.id === game.player1);
-                p2 = players.find((p) => p.id === game.player2);
-                if (p1.TP !== p2.TP) {
-                    setHasBeenPairedUpDown(p1.id, tournamentId, true);
-                    setHasBeenPairedUpDown(p2.id, tournamentId, true);
-                }
-                p1 = null;
-                p2 = null;
-            }
-        )
-
-        games = games.map((game) => {
-            return [
-                game.player1,
-                game.player2,
-                tournamentId,
-                tournament.currentRound,
-                0,
-                0,
-                false,
-                null,
-                0,
-                game.match
-            ]
-        })
+        let games = await createMatchups(tournament);
 
         if (await createGames(games)) {
-            tournament = await getTournament(tournamentId);
             tournament.games = await getGamesForTournamentRound(tournament.id, tournament.currentRound);
-            tournament.canEndRound = await checkCanEndRound(tournament);
+            tournament.canEndRound = false;
             return res.json(tournament);
         }
     }
@@ -304,6 +259,65 @@ async function checkCanEndRound(tournament) {
     const currentGames = await getGamesForTournamentRound(tournament.id, tournament.currentRound);
     const hasOngoingGames = currentGames.filter((game) => !game.ended).length > 0;
     return !hasOngoingGames && tournament.state === 'ongoing' && !tournament.currentRoundFinished;
+}
+
+async function createMatchups(tournament) {
+    let players = await getPlayerOverView(tournament.id);
+
+    players = players.map((player) => {
+        return {
+            id: player.id,
+            score: player.TP + (player.SoS / 10),
+            pairedUpDown: player.pairedUpDown,
+            receivedBye: player.receivedBye,
+            TP: player.TP,
+            teamName: player.teamName,
+        };
+    });
+
+    for (const player of players) {
+        if (tournament.currentRound !== 1)
+            player.avoid = await getMatchupsToAvoidForTournamentUser(player.id, tournament.id);
+        else if (player.teamName) {
+            let team = (await getTeam(player.teamName, tournament.id));
+            player.avoid = team;
+        }
+    }
+
+    let games = Swiss(players, tournament.currentRound);
+
+    games.filter((game) => !game.player2).forEach((g) => setHasReceivedBye(g.player1, tournament.id, true));
+
+    let p1;
+    let p2;
+    games.forEach((game) => {
+            p1 = players.find((p) => p.id === game.player1);
+            p2 = players.find((p) => p.id === game.player2);
+            if (p1.TP !== p2.TP) {
+                setHasBeenPairedUpDown(p1.id, tournament.id, true);
+                setHasBeenPairedUpDown(p2.id, tournament.id, true);
+            }
+            p1 = null;
+            p2 = null;
+        }
+    );
+
+    games = games.map((game) => {
+        return [
+            game.player1,
+            game.player2,
+            tournament.id,
+            tournament.currentRound,
+            0,
+            0,
+            false,
+            null,
+            0,
+            game.match
+        ]
+    });
+
+    return games;
 }
 
 module.exports = {

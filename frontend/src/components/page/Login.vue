@@ -16,7 +16,7 @@ const isLoading = ref(false);
  * Ruft checkValidity auf -> Überprüfung der Gültigkeit der Eingaben
  */
 onMounted(() => {
-  //if (isAuthenticated.value) router.push({ name: 'Profile' });
+  if (isAuthenticated.value) router.push({ name: 'Profile' });
   checkValidity({target: document.getElementById('email')});
   checkValidity({target: document.getElementById('password')});
 })
@@ -31,6 +31,7 @@ async function handleLogin() {
   try {
     await authStore.login(email.value, password.value);
     isLoading.value = false;
+    router.push({name: 'Landing Page'})
   } catch (error) {
     isLoading.value = false;
   }

@@ -4,6 +4,7 @@ const routes = [
     { path: '/', name: 'Landing Page', component: () => import('../components/page/LandingPage.vue'), meta: { title: '' } },
     { path: '/profile/login', name: 'Login', component: () => import('../components/page/Login.vue'), meta: { title: ' - Login' } },
     { path: '/profile/register', name: 'Register', component: () => import('../components/page/Register.vue'), meta: { title: ' - Register' } },
+    { path: '/profile', name: 'Profile', component: () => import('../components/page/Profile.vue'), meta: { title: ' - Profile' } },
     { path: '/tournament/create', name: 'Create Tournament', component: () => import('../components/page/CreateTournament.vue'), meta: { title: ' - Create Tournament' } },
     { path: '/tournament/my-tournaments', name: 'My Tournaments', component: () => import('../components/page/MyTournaments.vue'), meta: { title: ' - My Tournaments' } },
     { path: '/tournament/:id', name: 'Tournament', component: () => import('../components/page/Tournament.vue'), meta: { title: ' - Tournament' } },

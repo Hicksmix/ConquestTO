@@ -5,6 +5,11 @@ import router from './../../router';
 
 const authStore = useAuthStore();
 const isAuthenticated = computed(() => authStore.isAuthenticated);
+const username = computed(() => authStore.currentUser.username)
+
+onMounted(() => {
+  authStore.loadUser();
+})
 </script>
 
 <template>
@@ -18,7 +23,7 @@ const isAuthenticated = computed(() => authStore.isAuthenticated);
     <div>
       <div class="rounded-circle profile-circle icon-button">
         <span v-if="!isAuthenticated" class="pi pi-user dark" v-on:click="router.push({ name: 'Login' })"></span>
-        <span v-else class="pi pi-address-book dark" v-on:click="router.push({ name: 'Login' })"></span>
+        <span class="dark fs-6 fw-bold im-fell-english-regular profile-initial" v-on:click="router.push({ name: 'Profile' })">{{username?.charAt(0)}}</span>
       </div>
     </div>
   </div>
@@ -41,6 +46,10 @@ const isAuthenticated = computed(() => authStore.isAuthenticated);
     background: var(--color-background-soft);
     align-items: center;
     justify-content: center;
+
+    .profile-initial {
+      align-self: baseline;
+    }
   }
 }
 </style>

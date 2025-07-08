@@ -32,7 +32,7 @@ onMounted(async () => {
       <img src="./../../assets/images/logo.svg">
       <div class="mb-3">
         <h1 class="form-header m-0 text-center">{{ tournamentData.name }}</h1>
-        <span class="sub-header text-center">{{ tournamentData.date }} | {{ tournamentData.state }}</span>
+        <span class="sub-header text-center">{{ new Date(tournamentData.date).toLocaleString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) }} | {{ tournamentData.state }}</span>
       </div>
       <span class="sub-header">Players</span>
       <ul class="card-list w-100">
@@ -44,9 +44,8 @@ onMounted(async () => {
               <span class="fs-6 text-truncate"> ({{ player.pbwPin ? player.pbwPin : player.email }})</span>
             </div>
             <div class="d-flex">
-              <span>W: {{ player.winCount }}, L: {{ player.lossCount }}, D: {{ player.drawCount }}, SoS: {{
-                  player.SoS
-                }}, VP: {{ player.VP }}</span>
+              <span class="text-truncate">TP: {{ player.TP }}, SoS: {{ player.SoS }}, VP: {{ player.VP }};
+                {{`${player.winCount}/${player.lossCount}/${player.drawCount}`}}</span>
             </div>
           </div>
           <div class="faction-icon-container">
@@ -59,7 +58,8 @@ onMounted(async () => {
                 v-on:click="router.push({name: 'Add Players', params: {id: tournamentId}})">Add Players
         </button>
         <button :class="[{disabled: tournamentData.state === 'created'}]" :disabled="tournamentData.state === 'created'"
-                v-on:click="router.push({name: 'Tournament Round', params: {id: tournamentId}})">Rounds</button>
+                v-on:click="router.push({name: 'Tournament Round', params: {id: tournamentId}})">Rounds
+        </button>
       </div>
     </div>
   </div>

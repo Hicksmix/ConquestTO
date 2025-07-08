@@ -31,7 +31,7 @@
     --color-background-dark: #37474F;
     --color-background-dark-2: #505D6A;
     --color-background-disabled: #A0A0A0;
-
+    --color-background-disabled-light: #C6C6C6;
 
     --color-border: var(--vt-c-divider-light-2);
     --color-border-hover: var(--vt-c-divider-light-1);

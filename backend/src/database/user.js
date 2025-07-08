@@ -124,4 +124,20 @@ async function createNewUser(id, username, password, email, pbwPin) {
     }
 }
 
-module.exports = { getUserByMail, getUserByName, createNewUser, getUser, getUserByPin }
+async function updateUser(id, username, pbwPin) {
+    let conn;
+    try {
+        conn = await getConnection();
+        let row;
+        if (conn) {
+            row = await conn.query('update `users` set username = ?, pbw_pin = ? where id = ?', [username, pbwPin, id]);
+            return row.affectedRows === 1;
+        }
+    } catch (e) {
+        console.log(e);
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
+module.exports = { getUserByMail, getUserByName, createNewUser, getUser, getUserByPin, updateUser }

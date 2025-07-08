@@ -8,7 +8,7 @@ axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL + '/api';
 
 // Interceptor, der die sessionID zu jeder Anfrage hinzufügt, falls vorhanden
 axios.interceptors.request.use((config) => {
-    const jwt = localStorage.getItem('jwt');
+    const jwt = localStorage.getItem('cto_jwt');
     if (jwt) {
         config.params = { ...config.params, jwt: jwt };
     }

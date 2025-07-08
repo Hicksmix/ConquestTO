@@ -12,7 +12,6 @@ button {
   align-items: center;
   justify-content: center;
   border: 1px transparent;
-  font-size: 1rem;
   color: var(--color-text-light);
 
   &.secondary {
@@ -98,10 +97,18 @@ ul, .card-list {
   &.dark {
     color: var(--vt-c-text-light-2)
   }
+
+  &.disabled {
+    color: var(--color-text-disabled);
+  }
 }
 
 .icon-button {
   cursor: pointer;
+}
+
+.dark {
+  color: var(--vt-c-text-light-2)
 }
 
 form {
@@ -132,6 +139,12 @@ form {
         background-color: var(--color-background-soft);
         border-color: var(--color-border);
         box-shadow: none;
+      }
+
+      &.disabled {
+        pointer-events: none;
+        color: var(--color-text-disabled);
+        background-color: var(--color-background-disabled-light);
       }
     }
 

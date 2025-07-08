@@ -1,36 +1,48 @@
 @import './base.css';
 
 #app {
-  display: flex;
-  width: 100vw;
-  height: 100vh;
-  flex-direction: column;
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    flex-direction: column;
 }
 
 main {
-  max-width: 400px;
-  margin: auto;
-  padding: 2rem;
-  font-weight: normal;
-  width: 100%;
-  height: calc(100vh - 3rem);
-  align-content: center;
+    max-width: 400px;
+    margin: auto;
+    padding: 2rem;
+    font-weight: normal;
+    width: 100%;
+    height: calc(100vh - 3rem);
+    align-content: center;
 }
 
 body {
-  display: flex;
-  place-items: center;
+    display: flex;
+    place-items: center;
 }
 
 @media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
+    a:hover {
+        background-color: hsla(160, 100%, 37%, 0.2);
+    }
 }
 
 @media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
+    body {
+        display: flex;
+        place-items: center;
+    }
+}
+
+.im-fell-english-regular {
+    font-family: "IM Fell English", serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.im-fell-english-regular-italic {
+    font-family: "IM Fell English", serif;
+    font-weight: 400;
+    font-style: italic;
 }

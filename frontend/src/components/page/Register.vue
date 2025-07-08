@@ -19,7 +19,7 @@ const isLoading = ref(false);
  * Ruft Validierungsfunktionen für die initialen Formulareingaben auf.
  */
 onMounted(() => {
-  //if (isAuthenticated.value) router.push({ name: 'Profile' })
+  if (isAuthenticated.value) router.push({ name: 'Profile' })
   checkEmailValidity({target: document.getElementById('email')});
   checkUsernameValidity({target: document.getElementById('username')});
   checkPasswordValidity({target: document.getElementById('password')});
@@ -100,7 +100,7 @@ function checkPasswordValidity(e) {
  */
 function checkRepeatPasswordValidity(e) {
   if (repeatPassword.value !== password.value) {
-    //e.target.setCustomValidity("Die Passwörter stimmen nicht überein");
+    e.target.setCustomValidity("Die Passwörter stimmen nicht überein");
   } else {
     e.target.setCustomValidity("")
   }
