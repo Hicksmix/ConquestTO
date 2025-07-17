@@ -45,7 +45,12 @@ export const useTournamentStore = defineStore('tournament', {
         },
         async addPlayerToTournament(pinOrMail, tournamentId, faction, teamName) {
             try {
-                const response = await axios.post('tournament/add-player', {pinOrMail, tournamentId, faction, teamName});
+                const response = await axios.post('tournament/add-player', {
+                    pinOrMail,
+                    tournamentId,
+                    faction,
+                    teamName
+                });
                 if (response.data.tournament) {
                     this.currentTournament = response.data.tournament
                     return response.data.tournament;
@@ -75,7 +80,7 @@ export const useTournamentStore = defineStore('tournament', {
                     return response.data.tournament;
                 }
             } catch (error) {
-                console.error('Removing player failed:', error);
+                console.error('Starting tournament failed:', error);
                 throw error;
             }
         },
@@ -87,7 +92,7 @@ export const useTournamentStore = defineStore('tournament', {
                     return response.data.tournament;
                 }
             } catch (error) {
-                console.error('Removing player failed:', error);
+                console.error('Ending tournament failed:', error);
                 throw error;
             }
         },
@@ -134,9 +139,13 @@ export const useTournamentStore = defineStore('tournament', {
         },
         async updateGame(game) {
             try {
-                const response = await axios.put('/games/update', {game, tournamentId: this.currentTournament.id});
+                const response = await axios.put('/games/update-score', {
+                    game,
+                    tournamentId: this.currentTournament.id
+                });
                 if (response.data) {
-                    this.currentTournament.games[response.data.id] = response.data;
+                    const index = this.currentTournament.games.indexOf(game);
+                    this.currentTournament.games[index] = response.data;
                     return response.data;
                 }
             } catch (error) {
@@ -152,7 +161,19 @@ export const useTournamentStore = defineStore('tournament', {
                     return response.data;
                 }
             } catch (error) {
-                console.error('Removing player failed:', error);
+                console.error('Ending tournament round failed:', error);
+                throw error;
+            }
+        },
+        async createTournamentRound() {
+            try {
+                const response = await axios.post('/tournament/create-round', {tournamentId: this.currentTournament.id});
+                if (response.data) {
+                    this.currentTournament = response.data
+                    return response.data;
+                }
+            } catch (error) {
+                console.error('Creating tournament round failed:', error);
                 throw error;
             }
         },
@@ -164,9 +185,26 @@ export const useTournamentStore = defineStore('tournament', {
                     return response.data;
                 }
             } catch (error) {
-                console.error('Removing player failed:', error);
+                console.error('Starting tournament round failed:', error);
                 throw error;
             }
-        }
+        },
+        async swapPlayers(game1Id, game2Id, userIdToSwapFromGame1, userIdToSwapFromGame2) {
+            try {
+                const response = await axios.put('/games/swap-players', {
+                    game1Id,
+                    game2Id,
+                    userIdToSwapFromGame1,
+                    userIdToSwapFromGame2
+                });
+                if (response.data) {
+                    this.currentTournament = response.data
+                    return response.data;
+                }
+            } catch (error) {
+                console.error('Swapping players failed:', error);
+                throw error;
+            }
+        },
     },
 });

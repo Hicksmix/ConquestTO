@@ -21,7 +21,7 @@ async function getTournament(tournamentId) {
         conn = await getConnection();
         let row = await conn.query('select * from tournaments where id = ? LIMIT 1', [tournamentId]);
         if (row.length === 1) { // Wenn 1 Ergebnis gefunden wurde
-            result = new Tournament(row[0]['id'], row[0]['name'], row[0]['date'], row[0]['orga_id'], row[0]['state'], null, row[0]['current_round'], row[0]['current_round_finished'] === 1);
+            result = new Tournament(row[0]['id'], row[0]['name'], row[0]['date'], row[0]['orga_id'], row[0]['state'], null, row[0]['current_round'], row[0]['current_round_state']);
         }
         return result;
     } catch (e) {
@@ -129,13 +129,13 @@ async function setTournamentState(state, tournamentId) {
     }
 }
 
-async function setCurrentRoundFinished(tournamentId, finished) {
+async function setCurrentRoundState(tournamentId, state) {
     let conn;
     try {
         conn = await getConnection();
         let row;
         if (conn) {
-            row = await conn.query('update `tournaments` set current_round_finished = ? where id = ?', [finished, tournamentId])
+            row = await conn.query('update `tournaments` set current_round_state = ? where id = ?', [state, tournamentId])
             return row.affectedRows === 1;
         }
     } catch (e) {
@@ -170,6 +170,6 @@ module.exports = {
     createNewTournament,
     getPlayerOverView,
     setTournamentState,
-    setCurrentRoundFinished,
+    setCurrentRoundState,
     setCurrentRound
 }

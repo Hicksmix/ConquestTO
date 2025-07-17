@@ -59,6 +59,24 @@ async function getGameWithPlayerNames(gameId) {
     }
 }
 
+async function getGame(gameId) {
+    let result = null;
+    let conn;
+    try {
+        conn = await getConnection();
+        let rows = await conn.query('Select * from game where id = ? LIMIT 1', [gameId]);
+        if (rows.length === 1) { // Wenn 1 Ergebnis gefunden wurde
+            let row = rows[0];
+            result = new Game(row['id'], row['player1'], row['player2'], undefined, undefined, row['tournament_id'], row['round_nr'], row['score1'], row['score2'], row['ended'] === 1, row['winner_id'], row['table_nr'], row['scenario']);
+        }
+        return result;
+    } catch (e) {
+        console.log(e);
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
 async function updateGame(game) {
     let conn;
     try {
@@ -129,6 +147,7 @@ function flatten(arr) {
 module.exports = {
     getGamesForTournamentRound,
     getGameWithPlayerNames,
+    getGame,
     setGameEnded,
     updateGame,
     createGames,

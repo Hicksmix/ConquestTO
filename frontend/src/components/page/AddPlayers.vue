@@ -104,8 +104,9 @@ async function startTournament() {
         <div class="form-field">
           <label for="faction" class="form-label">Faction*</label>
           <span class="select-icon pi pi-angle-down"></span>
-          <select v-model.trim="faction" id="faction" type="text" name="faction" class="form-control"
+          <select v-model.trim="faction" id="faction" name="faction" class="form-control"
                   @input="checkValidity">
+            <option disabled value="">Please select one</option>
             <option value="100K">100K</option>
             <option value="spires">Spires</option>
             <option value="dweghom">Dweghom</option>

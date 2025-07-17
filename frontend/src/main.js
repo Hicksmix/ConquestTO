@@ -1,4 +1,4 @@
-import { createApp } from 'vue'
+import {createApp} from 'vue'
 import App from './App.vue'
 import './assets/style.scss';
 import router from './router';
@@ -7,11 +7,21 @@ import './axios';
 import './assets/main.css';
 import PrimeVue from 'primevue/config';
 import Aura from '@primevue/themes/aura';
-import { definePreset } from '@primevue/themes';
+import {definePreset} from '@primevue/themes';
 
 // Falls eigenes Styling für Primevue genutzt werden soll
 // Siehe https://primevue.org/theming/styled/
 const MyPreset = definePreset(Aura, {
+    components: {
+        dialog: {
+            background: 'var(--color-background-dark)',
+            color: 'var(--color-heading)',
+            border: {
+                color: 'transparent',
+                radius: '0.25rem',
+            }
+        }
+    }
 });
 
 export const app = createApp(App)

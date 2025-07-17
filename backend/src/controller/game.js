@@ -1,4 +1,10 @@
-const {getGamesForTournamentRound, getGameWithPlayerNames, setGameEnded, updateGame} = require("../database/game");
+const {
+    getGamesForTournamentRound,
+    getGameWithPlayerNames,
+    setGameEnded,
+    updateGame,
+    getGame
+} = require("../database/game");
 const {getTournament, getPlayerOverView} = require("../database/tournament");
 const {checkCanEndRound} = require("./tournament");
 
@@ -10,10 +16,6 @@ async function loadRoundForTournament(tournamentId, roundNr, res) {
         return res.json({title, text: "Incomplete data"});
     }
     let games = await getGamesForTournamentRound(tournamentId, roundNr);
-    games = games.reduce(function (map, obj) {
-        map[obj.id] = obj;
-        return map;
-    }, {});
     return res.json({games});
 }
 
@@ -91,8 +93,8 @@ async function reopenGame(gameId, userId, tournamentId, res) {
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
-async function updateGamePartial(partialGame, userId, tournamentId, res) {
-    const title = "Error updating game";
+async function updateGameScore(partialGame, userId, tournamentId, res) {
+    const title = "Error updating game score";
 
     if (!(partialGame.id + ''.length > 0) || !(userId?.length > 0)) {
         res.status(400);
@@ -120,9 +122,72 @@ async function updateGamePartial(partialGame, userId, tournamentId, res) {
 
     res.status(500);
     return res.json({title, text: "Something went wrong. Please try again later"});
+}
 
+async function swapPlayers(game1Id, game2Id, userIdToSwapFromGame1, userIdToSwapFromGame2, orgaId, res) {
+    const title = "Error swapping players";
+
+    if (!game1Id|| !game2Id || !(orgaId?.length > 0)) {
+        res.status(400);
+        return res.json({title, text: "Incomplete data"});
+    }
+
+    let game1 = await getGame(game1Id);
+    let game2 = await getGame(game2Id);
+
+    if (!game1 || !game2) {
+        res.status(400);
+        return res.json({title, text: "Game not found"});
+    }
+
+    if (game1.tournamentId !== game2.tournamentId) {
+        res.status(400);
+        return res.json({title, text: "Games are not from the same tournament"});
+    }
+
+    console.log(game1, game2);
+    if ((game1.player1Id !== userIdToSwapFromGame1 && game1.player2Id !== userIdToSwapFromGame1) ||
+        (game2.player1Id !== userIdToSwapFromGame2 && game2.player2Id !== userIdToSwapFromGame2)) {
+        res.status(400);
+        return res.json({title, text: "Players not in selected games"});
+    }
+
+    let tournament = await getTournament(game1.tournamentId);
+
+    if (tournament.orgaId !== orgaId) {
+        res.status(403);
+        return res.json({title, text: "Only the orga can swap players"});
+    }
+
+    if(tournament.currentRound !== game1.roundNr && tournament.currentRound !== game2.roundNr && tournament.currentRoundState !== "created") {
+        res.status(403);
+        return res.json({title, text: "You can't swap matchups in ongoing or ending rounds"});
+    }
+
+    if (game1.player1Id === userIdToSwapFromGame1) {
+        game1.player1Id = userIdToSwapFromGame2;
+    } else {
+        game1.player2Id = userIdToSwapFromGame2;
+    }
+
+    if (game2.player1Id === userIdToSwapFromGame2) {
+        game2.player1Id = userIdToSwapFromGame1;
+    } else {
+        game2.player2Id = userIdToSwapFromGame1;
+    }
+
+    console.log(game1, game2)
+
+    if (await updateGame(game1) && await updateGame(game2)) {
+        tournament.players = await getPlayerOverView(tournament.id);
+        tournament.games = await getGamesForTournamentRound(tournament.id, tournament.currentRound);
+        return res.json(tournament);
+    }
+
+    res.status(500);
+    return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
 module.exports = {
-    loadRoundForTournament, endGame, reopenGame, updateGamePartial
+    loadRoundForTournament, endGame, reopenGame, updateGameScore, swapPlayers
 }

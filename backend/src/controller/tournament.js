@@ -2,7 +2,7 @@ const {
     createNewTournament,
     getTournament,
     getTournamentsByOrgaId,
-    getPlayerOverView, setTournamentState, setCurrentRoundFinished, setCurrentRound
+    getPlayerOverView, setTournamentState, setCurrentRoundState, setCurrentRound
 } = require("../database/tournament")
 const {makeId} = require("../helper/makeId");
 const {getUserByMail, getUserByPin} = require("../database/user");
@@ -94,8 +94,6 @@ async function addPlayerToTournament(pinOrMail, tournamentId, faction, teamName,
     if (!user) user = await getUserByMail(pinOrMail);
 
     if (tournament && user && tournament.state === 'created') {
-        await setCurrentRoundFinished(tournamentId, true);
-
         tournament.players = await getPlayerOverView(tournamentId);
         if (tournament.players.filter(player => player.id === user.id).length > 0) {
             res.status(409);
@@ -152,7 +150,7 @@ async function startTournament(tournamentId, orgaId, res) {
     }
 
     if (await setTournamentState("ongoing", tournamentId)) {
-        if (await setCurrentRound(tournamentId, tournament.currentRound + 1) && await setCurrentRoundFinished(tournamentId, false)) {
+        if (await setCurrentRound(tournamentId, tournament.currentRound + 1) && await setCurrentRoundState(tournamentId, "created")) {
             tournament = await getTournament(tournamentId);
 
             tournament.games = await createMatchups(tournament);
@@ -184,7 +182,7 @@ async function endTournament(tournamentId, orgaId, res) {
         return res.json({title, text: "Only the orga can end a tournament"});
     }
 
-    if (!tournament.currentRoundFinished) {
+    if (tournament.currentRoundState !== "ended") {
         res.status(403);
         return res.json({title, text: "You cannot end a tournament while a round is still going on"});
     }
@@ -213,7 +211,7 @@ async function endTournamentRound(tournamentId, orgaId, res) {
         return res.json({title, text: "Only the orga can end a tournament round"});
     }
 
-    if (await checkCanEndRound(tournament) && await setCurrentRoundFinished(tournamentId, true)) {
+    if (await checkCanEndRound(tournament) && await setCurrentRoundState(tournamentId, "ended")) {
         tournament = await getTournament(tournamentId);
         tournament.games = await getGamesForTournamentRound(tournament.id, tournament.currentRound);
         tournament.canEndRound = await checkCanEndRound(tournament);
@@ -224,8 +222,8 @@ async function endTournamentRound(tournamentId, orgaId, res) {
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
-async function startNewRound(tournamentId, orgaId, res) {
-    const title = "Error starting tournament round";
+async function createNewRound(tournamentId, orgaId, res) {
+    const title = "Error creating tournament round";
 
     if (!(tournamentId?.length > 0) || !(orgaId?.length > 0)) {
         res.status(400);
@@ -236,10 +234,10 @@ async function startNewRound(tournamentId, orgaId, res) {
 
     if (tournament.orgaId !== orgaId) {
         res.status(403);
-        return res.json({title, text: "Only the orga can start a tournament round"});
+        return res.json({title, text: "Only the orga can create a tournament round"});
     }
 
-    if (tournament.currentRoundFinished && await setCurrentRound(tournamentId, tournament.currentRound + 1) && await setCurrentRoundFinished(tournamentId, false)) {
+    if (tournament.currentRoundState === "ended" && await setCurrentRound(tournamentId, tournament.currentRound + 1) && await setCurrentRoundState(tournamentId, "created")) {
         tournament = await getTournament(tournamentId);
 
         let games = await createMatchups(tournament);
@@ -255,10 +253,52 @@ async function startNewRound(tournamentId, orgaId, res) {
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
+async function startRound(tournamentId, orgaId, res) {
+    const title = "Error starting tournament round";
+
+    if (!(tournamentId?.length > 0) || !(orgaId?.length > 0)) {
+        res.status(400);
+        return res.json({title, text: "Incomplete data"});
+    }
+
+    let tournament = await getTournament(tournamentId);
+
+    if (tournament.orgaId !== orgaId) {
+        res.status(403);
+        return res.json({title, text: "Only the orga can start a tournament round"});
+    }
+
+    if (tournament.currentRoundState === "created" && await setCurrentRoundState(tournamentId, "ongoing")) {
+        tournament = await getTournament(tournamentId);
+        tournament.games = await getGamesForTournamentRound(tournament.id, tournament.currentRound);
+        tournament.players = await getPlayerOverView(tournamentId);;
+
+        let p1;
+        let p2;
+        tournament.games.forEach((game) => {
+                p1 = tournament.players.find((p) => p.id === game.player1Id);
+                p2 = tournament.players.find((p) => p.id === game.player2Id);
+                if (p1 && p2 && p1.TP !== p2.TP) {
+                    setHasBeenPairedUpDown(p1.id, tournament.id, true);
+                    setHasBeenPairedUpDown(p2.id, tournament.id, true);
+                } else if (!p2) {
+                    setHasReceivedBye(p1.id, tournament.id, true)
+                }
+                p1 = null;
+                p2 = null;
+            }
+        );
+        return res.json(tournament);
+    }
+
+    res.status(500);
+    return res.json({title, text: "Something went wrong. Please try again later"});
+}
+
 async function checkCanEndRound(tournament) {
     const currentGames = await getGamesForTournamentRound(tournament.id, tournament.currentRound);
     const hasOngoingGames = currentGames.filter((game) => !game.ended).length > 0;
-    return !hasOngoingGames && tournament.state === 'ongoing' && !tournament.currentRoundFinished;
+    return !hasOngoingGames && tournament.state === 'ongoing' && tournament.currentRoundState === "ongoing";
 }
 
 async function createMatchups(tournament) {
@@ -286,22 +326,6 @@ async function createMatchups(tournament) {
 
     let games = Swiss(players, tournament.currentRound);
 
-    games.filter((game) => !game.player2).forEach((g) => setHasReceivedBye(g.player1, tournament.id, true));
-
-    let p1;
-    let p2;
-    games.forEach((game) => {
-            p1 = players.find((p) => p.id === game.player1);
-            p2 = players.find((p) => p.id === game.player2);
-            if (p1.TP !== p2.TP) {
-                setHasBeenPairedUpDown(p1.id, tournament.id, true);
-                setHasBeenPairedUpDown(p2.id, tournament.id, true);
-            }
-            p1 = null;
-            p2 = null;
-        }
-    );
-
     games = games.map((game) => {
         return [
             game.player1,
@@ -328,7 +352,8 @@ module.exports = {
     removePlayerFromTournament,
     startTournament,
     endTournamentRound,
-    startNewRound,
+    createNewRound,
+    startRound,
     checkCanEndRound,
     endTournament
 }

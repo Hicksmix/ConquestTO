@@ -10,10 +10,11 @@ class Tournament {
     state;
     players;
     currentRound;
-    currentRoundFinished;
+    currentRoundState;
     canEndRound;
+    games;
 
-    constructor(id, name, date, orgaId, state, players, currentRound, currentRoundFinished) {
+    constructor(id, name, date, orgaId, state, players, currentRound, currentRoundState) {
         this.id = id;
         this.name = name;
         this.date = date;
@@ -21,7 +22,7 @@ class Tournament {
         this.state = state;
         this.players = players;
         this.currentRound = currentRound;
-        this.currentRoundFinished = currentRoundFinished;
+        this.currentRoundState = currentRoundState;
     }
 }
 
