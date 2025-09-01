@@ -11,17 +11,19 @@ const date = ref('');
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 const isLoading = ref(false);
 
-/**
- * Überprüft, ob Nutzer authentifiziert ist.
- * Wenn der Nutzer bereits eingeloggt ist -> Weiterleitung Profilseite.
- * Ruft checkValidity auf -> Überprüfung der Gültigkeit der Eingaben
- */
 onMounted(() => {
+  // Authentifizierung überprüfen, sonst Weiterleitung zum Login
   if (!isAuthenticated.value) router.push({ name: 'Login' });
+
+  // Erster checkValidity auf Name und Datum
   checkValidity({target: document.getElementById('name')});
   checkValidity({target: document.getElementById('date')});
 })
 
+
+/**
+ * Erstellt ein Turnier und leitet zur Seite zum Spieler hinzufügen weiter
+ */
 async function createTournament() {
   isLoading.value = true;
   try {
@@ -34,7 +36,7 @@ async function createTournament() {
 }
 
 /**
- * Kontrolliert, ob der "einloggen"-Button aktiviert oder deaktiviert ist.
+ * Kontrolliert, ob der "Submit"-Button aktiviert oder deaktiviert ist.
  */
 function disableSubmit() {
   return !name.value || !date.value;
@@ -43,7 +45,6 @@ function disableSubmit() {
 /**
  * Überprüft, ob das übergebene Eingabefeld (name, date) einen gültigen Wert enthält.
  * Setzt eventuell Fehlermeldung
- * @param e
  */
 function checkValidity(e) {
   if (!e.target.value) {

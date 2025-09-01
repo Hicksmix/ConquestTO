@@ -8,6 +8,13 @@ const {
 const {getTournament, getPlayerOverView} = require("../database/tournament");
 const {checkCanEndRound} = require("./tournament");
 
+/**
+ * Lädt die Daten einer Turnierrunde und liefert diese zurück
+ * @param tournamentId
+ * @param roundNr
+ * @param res
+ * @returns {Promise<*>}
+ */
 async function loadRoundForTournament(tournamentId, roundNr, res) {
     const title = "Error loading tournament round";
 
@@ -19,6 +26,14 @@ async function loadRoundForTournament(tournamentId, roundNr, res) {
     return res.json({games});
 }
 
+/**
+ * Beendet ein Spiel und liefert die aktualisierten Turnierdaten zurück
+ * @param gameId
+ * @param userId
+ * @param tournamentId
+ * @param res
+ * @returns {Promise<*>}
+ */
 async function endGame(gameId, userId, tournamentId, res) {
     const title = "Error ending game";
 
@@ -37,13 +52,7 @@ async function endGame(gameId, userId, tournamentId, res) {
 
     if (await setGameEnded(gameId, true)) {
         if (tournament) {
-            let games = await getGamesForTournamentRound(tournamentId, game.roundNr);
-
-            games = games.reduce(function (map, obj) {
-                map[obj.id] = obj;
-                return map;
-            }, {});
-            tournament.games = games;
+            tournament.games = await getGamesForTournamentRound(tournamentId, game.roundNr);
 
             tournament.players = await getPlayerOverView(tournamentId);
             tournament.canEndRound = await checkCanEndRound(tournament);
@@ -55,10 +64,16 @@ async function endGame(gameId, userId, tournamentId, res) {
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
+/**
+ * Eröffnet ein zuvor geschlossenes Spiel und liefert die aktualisierten Turnierdaten zurück
+ * @param gameId
+ * @param userId
+ * @param tournamentId
+ * @param res
+ * @returns {Promise<*>}
+ */
 async function reopenGame(gameId, userId, tournamentId, res) {
     const title = "Error reopening game";
-
-    // TODO: Check if the round finished
 
     if (!(gameId + ''.length > 0) || !(userId?.length > 0)) {
         res.status(400);
@@ -68,6 +83,11 @@ async function reopenGame(gameId, userId, tournamentId, res) {
     const game = await getGameWithPlayerNames(gameId);
     const tournament = await getTournament(tournamentId);
 
+    if (tournament.currentRoundState !== "ongoing" || tournament.currentRound !== game.roundNr) {
+        res.status(403);
+        return res.json({title, text: "You can only reopen games of ongoing rounds"});
+    }
+
     if (tournament?.orgaId !== userId && game.player1Id !== userId && game.player2Id !== userId) {
         res.status(403);
         return res.json({title, text: "Only the organizer or participants can reopen a game"});
@@ -75,13 +95,7 @@ async function reopenGame(gameId, userId, tournamentId, res) {
 
     if (await setGameEnded(gameId, false)) {
         if (tournament) {
-            let games = await getGamesForTournamentRound(tournamentId, game.roundNr);
-
-            games = games.reduce(function (map, obj) {
-                map[obj.id] = obj;
-                return map;
-            }, {});
-            tournament.games = games;
+            tournament.games = await getGamesForTournamentRound(tournamentId, game.roundNr);
 
             tournament.players = await getPlayerOverView(tournamentId);
             tournament.canEndRound = await checkCanEndRound(tournament);
@@ -93,6 +107,14 @@ async function reopenGame(gameId, userId, tournamentId, res) {
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
+/**
+ * Aktualisiert ein Spiel und liefert die aktualisierten Turnierdaten zurück
+ * @param partialGame
+ * @param userId
+ * @param tournamentId
+ * @param res
+ * @returns {Promise<*>}
+ */
 async function updateGameScore(partialGame, userId, tournamentId, res) {
     const title = "Error updating game score";
 
@@ -101,12 +123,15 @@ async function updateGameScore(partialGame, userId, tournamentId, res) {
         return res.json({title, text: "Incomplete data"});
     }
 
-    // TODO: Check if the round finished
-
     let game = await getGameWithPlayerNames(partialGame.id);
-
     let tournament = null;
     if (tournamentId) tournament = await getTournament(tournamentId);
+
+
+    if (tournament.currentRoundState !== "ongoing" || tournament.currentRound !== game.roundNr) {
+        res.status(403);
+        return res.json({title, text: "You can only update games of ongoing rounds"});
+    }
 
     if ((tournament && tournament.orgaId !== userId) && game.player1Id !== userId && game.player2Id !== userId) {
         res.status(403);
@@ -124,6 +149,16 @@ async function updateGameScore(partialGame, userId, tournamentId, res) {
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
+/**
+ * Tauscht zwei Spieler in den Paarungen und liefert die aktualisierten Turnierdaten zurück
+ * @param game1Id
+ * @param game2Id
+ * @param userIdToSwapFromGame1
+ * @param userIdToSwapFromGame2
+ * @param orgaId
+ * @param res
+ * @returns {Promise<*>}
+ */
 async function swapPlayers(game1Id, game2Id, userIdToSwapFromGame1, userIdToSwapFromGame2, orgaId, res) {
     const title = "Error swapping players";
 
@@ -145,7 +180,6 @@ async function swapPlayers(game1Id, game2Id, userIdToSwapFromGame1, userIdToSwap
         return res.json({title, text: "Games are not from the same tournament"});
     }
 
-    console.log(game1, game2);
     if ((game1.player1Id !== userIdToSwapFromGame1 && game1.player2Id !== userIdToSwapFromGame1) ||
         (game2.player1Id !== userIdToSwapFromGame2 && game2.player2Id !== userIdToSwapFromGame2)) {
         res.status(400);
@@ -164,19 +198,19 @@ async function swapPlayers(game1Id, game2Id, userIdToSwapFromGame1, userIdToSwap
         return res.json({title, text: "You can't swap matchups in ongoing or ending rounds"});
     }
 
+    // Überprüft, welcher der beiden Spieler vom ersten der beiden gefundenen Spiele, getauscht werden muss
     if (game1.player1Id === userIdToSwapFromGame1) {
         game1.player1Id = userIdToSwapFromGame2;
     } else {
         game1.player2Id = userIdToSwapFromGame2;
     }
 
+    // Überprüft, welcher der beiden Spieler vom zweiten der beiden gefundenen Spiele, getauscht werden muss
     if (game2.player1Id === userIdToSwapFromGame2) {
         game2.player1Id = userIdToSwapFromGame1;
     } else {
         game2.player2Id = userIdToSwapFromGame1;
     }
-
-    console.log(game1, game2)
 
     if (await updateGame(game1) && await updateGame(game2)) {
         tournament.players = await getPlayerOverView(tournament.id);

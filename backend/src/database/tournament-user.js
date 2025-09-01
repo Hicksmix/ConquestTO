@@ -1,6 +1,5 @@
 const getConnection = require("./connection");
 
-
 async function createTournamentUser(userId, tournamentId, faction, teamName) {
     let conn;
     try {

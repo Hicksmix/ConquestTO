@@ -1,3 +1,6 @@
+/**
+ * Store zum Verwalten der Authentifizierung
+ */
 import {defineStore} from 'pinia';
 import axios from '../axios';
 
@@ -7,7 +10,7 @@ export const useTournamentStore = defineStore('tournament', {
         currentTournament: {}
     }),
     actions: {
-        undefined,
+        // Erstellt ein neues Turnier
         async createTournament(name, date) {
             try {
                 const response = await axios.put('/tournament/create', {name, date});
@@ -19,6 +22,7 @@ export const useTournamentStore = defineStore('tournament', {
                 throw error;
             }
         },
+        // Lädt die Turniere, die man selbst organisiert hat
         async getTournamentsForOrga() {
             try {
                 const response = await axios.get('tournament/get-for-orga');
@@ -31,6 +35,7 @@ export const useTournamentStore = defineStore('tournament', {
                 throw error;
             }
         },
+        // Lädt die Daten eines Turniers
         async getTournament(tournamentId) {
             try {
                 const response = await axios.get('tournament/get-tournament', {params: {tournamentId}});
@@ -39,10 +44,11 @@ export const useTournamentStore = defineStore('tournament', {
                     return response.data.tournament;
                 }
             } catch (error) {
-                console.error('Loading tournaments failed:', error);
+                console.error('Loading tournament failed:', error);
                 throw error;
             }
         },
+        // Fügt einen Spieler zu einem Turnier hinzu
         async addPlayerToTournament(pinOrMail, tournamentId, faction, teamName) {
             try {
                 const response = await axios.post('tournament/add-player', {
@@ -60,6 +66,7 @@ export const useTournamentStore = defineStore('tournament', {
                 throw error;
             }
         },
+        // Entfernt einen Spieler aus einem Turnier
         async removePlayerFromTournament(userId, tournamentId) {
             try {
                 const response = await axios.delete('tournament/remove-player', {data: {userId, tournamentId}});
@@ -72,6 +79,7 @@ export const useTournamentStore = defineStore('tournament', {
                 throw error;
             }
         },
+        // Startet ein Turnier. Danach können keine weiteren Spieler hinzugefügt oder entfernt werden
         async startTournament(tournamentId) {
             try {
                 const response = await axios.post('tournament/start', {tournamentId});
@@ -84,6 +92,7 @@ export const useTournamentStore = defineStore('tournament', {
                 throw error;
             }
         },
+        // Beendet ein Turnier. Danach können keine weiteren Turnier- oder Spieldaten bearbeitet werden
         async endTournament(tournamentId) {
             try {
                 const response = await axios.post('tournament/end', {tournamentId});
@@ -96,6 +105,7 @@ export const useTournamentStore = defineStore('tournament', {
                 throw error;
             }
         },
+        // Lädt die Daten einer Runde
         async loadTournamentRound(roundNr) {
             try {
                 const response = await axios.get('/games/get-tournament-round', {
@@ -113,6 +123,7 @@ export const useTournamentStore = defineStore('tournament', {
                 throw error;
             }
         },
+        // Beendet ein Spiel
         async endGame(gameId) {
             try {
                 const response = await axios.put('/games/end', {gameId, tournamentId: this.currentTournament.id});
@@ -125,6 +136,7 @@ export const useTournamentStore = defineStore('tournament', {
                 throw error;
             }
         },
+        // Eröffnet ein Spiel wieder. Nur möglich, wenn die Runde noch nicht beendet wurde
         async reopenGame(gameId) {
             try {
                 const response = await axios.put('/games/reopen', {gameId, tournamentId: this.currentTournament.id});
@@ -137,6 +149,7 @@ export const useTournamentStore = defineStore('tournament', {
                 throw error;
             }
         },
+        // Aktualisiert die Daten eines Spiels
         async updateGame(game) {
             try {
                 const response = await axios.put('/games/update-score', {
@@ -149,10 +162,11 @@ export const useTournamentStore = defineStore('tournament', {
                     return response.data;
                 }
             } catch (error) {
-                console.error('Reopening game failed:', error);
+                console.error('Updating game failed:', error);
                 throw error;
             }
         },
+        // Beendet eine Turnierrunde. Danach können keine Daten der Runde mehr verändert werden
         async endTournamentRound() {
             try {
                 const response = await axios.post('/tournament/end-round', {tournamentId: this.currentTournament.id});
@@ -165,6 +179,7 @@ export const useTournamentStore = defineStore('tournament', {
                 throw error;
             }
         },
+        // Erstellt eine Turnierrunde
         async createTournamentRound() {
             try {
                 const response = await axios.post('/tournament/create-round', {tournamentId: this.currentTournament.id});
@@ -177,6 +192,7 @@ export const useTournamentStore = defineStore('tournament', {
                 throw error;
             }
         },
+        // Startet eine Turnierrunde. Danach ist das Tauschen von Paarungen nicht mehr für diese Runde möglich
         async startTournamentRound() {
             try {
                 const response = await axios.post('/tournament/start-round', {tournamentId: this.currentTournament.id});
@@ -189,6 +205,7 @@ export const useTournamentStore = defineStore('tournament', {
                 throw error;
             }
         },
+        // Tauscht zwei Spieler
         async swapPlayers(game1Id, game2Id, userIdToSwapFromGame1, userIdToSwapFromGame2) {
             try {
                 const response = await axios.put('/games/swap-players', {

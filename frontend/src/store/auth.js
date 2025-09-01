@@ -1,4 +1,6 @@
-// src/store/auth.js
+/**
+ * Store zum Verwalten der Authentifizierung und des Users
+ */
 import {defineStore, getActivePinia} from 'pinia';
 import axios from '../axios';
 
@@ -40,6 +42,7 @@ export const useAuthStore = defineStore('auth', {
                 throw error;
             }
         },
+        // Lädt die aktuellen User Daten
         async loadUser() {
             if (this.isAuthenticated) {
                 try {
@@ -48,12 +51,12 @@ export const useAuthStore = defineStore('auth', {
                         this.currentUser = response.data;
                     }
                 } catch (error) {
-                    console.error('Register failed:', error);
+                    console.error('Loading user failed:', error);
                     throw error;
                 }
             }
         },
-        // Ändert Username und Pin für den aktuellen User
+        // Ändert Username und pbwPin für den aktuellen User
         async editUser(username, password, pbwPin) {
             try {
                 const response = await axios.post('/user/edit', {username, password, pbwPin});
@@ -61,10 +64,11 @@ export const useAuthStore = defineStore('auth', {
                     this.currentUser = response.data.user;
                 }
             } catch (error) {
-                console.error('Edit User failed:', error);
+                console.error('Editing User failed:', error);
                 throw error;
             }
         },
+        // Aktualisiert das Passwort der aktuellen Users
         async editUserPassword(oldPassword, newPassword) {
             try {
                 const response = await axios.post('/user/edit-password', {oldPassword, newPassword});
@@ -72,7 +76,7 @@ export const useAuthStore = defineStore('auth', {
                     this.currentUser = response.data.user;
                 }
             } catch (error) {
-                console.error('Edit Password failed:', error);
+                console.error('Editing Password failed:', error);
                 throw error;
             }
         },

@@ -124,6 +124,13 @@ async function createNewUser(id, username, password, email, pbwPin) {
     }
 }
 
+/**
+ * Aktualisiert den Username und die pbwPin eines Users
+ * @param id
+ * @param username
+ * @param pbwPin
+ * @returns {Promise<boolean>}
+ */
 async function updateUser(id, username, pbwPin) {
     let conn;
     try {
@@ -140,6 +147,12 @@ async function updateUser(id, username, pbwPin) {
     }
 }
 
+/**
+ * Aktualisiert das Passwort des Users
+ * @param id
+ * @param password
+ * @returns {Promise<boolean>}
+ */
 async function updateUserPassword(id, password) {
     let conn;
     try {

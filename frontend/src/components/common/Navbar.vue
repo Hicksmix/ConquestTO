@@ -8,6 +8,7 @@ const isAuthenticated = computed(() => authStore.isAuthenticated);
 const username = computed(() => authStore.currentUser.username)
 
 onMounted(() => {
+  // Laden der aktuellen User Daten, damit das Initial des Users statt dem Account Icon angezeigt werden kann
   authStore.loadUser();
 })
 </script>

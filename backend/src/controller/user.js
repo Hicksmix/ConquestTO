@@ -62,6 +62,7 @@ async function register(username, password, email, pbwPin, res) {
         return res.json({title, text: "Email address already taken"});
     }
 
+    // Notwendig, da sonst versucht ggf. wird einen leeren String in der DB zu hinterlegen, was gegen das UNIQUE constraint verstößt
     if (pbwPin.length < 1) pbwPin = undefined;
     if (pbwPin) {
         user = await getUserByPin(pbwPin);
@@ -83,6 +84,12 @@ async function register(username, password, email, pbwPin, res) {
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
+/**
+ * Lädt die Userdaten anhand der UserId und übergibt diese im res
+ * @param id
+ * @param res
+ * @returns {Promise<*>}
+ */
 async function loadUser(id, res) {
     const title = "Error loading user";
 
@@ -97,6 +104,15 @@ async function loadUser(id, res) {
     return res.json(user);
 }
 
+/**
+ * Aktualisiert den Username und die pbwPin eines Users und übergibt die aktualisierten Daten im res
+ * @param id
+ * @param username
+ * @param password
+ * @param pbwPin
+ * @param res
+ * @returns {Promise<*>}
+ */
 async function editUser(id, username, password, pbwPin, res) {
     const title = "Error editing user";
 
@@ -113,6 +129,7 @@ async function editUser(id, username, password, pbwPin, res) {
         return res.json({title, text: "Username already taken"});
     }
 
+    // Notwendig, da sonst versucht ggf. wird einen leeren String in der DB zu hinterlegen, was gegen das UNIQUE constraint verstößt
     if (pbwPin.length < 1) pbwPin = undefined;
     if (pbwPin) {
         user = await getUserByPin(pbwPin);
@@ -138,6 +155,14 @@ async function editUser(id, username, password, pbwPin, res) {
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
+/**
+ * Aktualisiert das Passwort eines Users und übergibt die aktualisierten Daten im res
+ * @param id
+ * @param oldPassword
+ * @param newPassword
+ * @param res
+ * @returns {Promise<*>}
+ */
 async function editUserPassword(id, oldPassword, newPassword, res) {
     const title = "Error updating password";
 

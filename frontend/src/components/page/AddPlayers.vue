@@ -25,24 +25,24 @@ const team = ref('');
 const isLoading = ref(false)
 
 onMounted(async () => {
-  // Authentifizierung überprüfen
+  // Authentifizierung überprüfen, sonst Weiterleitung zum Login
   if (!isAuthenticated.value) await router.push({name: 'Login'});
 
+  // Laden der Daten, des geöffneten Turniers
   await tournamentStore.getTournament(tournamentId);
 })
 
 
 /**
- * Kontrolliert, ob der "einloggen"-Button aktiviert oder deaktiviert ist.
+ * Kontrolliert, ob der "Add User"-Button aktiviert oder deaktiviert ist.
  */
 function disableSubmit() {
   return !pinOrMail.value || !faction.value;
 }
 
 /**
- * Überprüft, ob das übergebene Eingabefeld (name, date) einen gültigen Wert enthält.
+ * Überprüft, ob das Eingabefeld des Events ausgefüllt ist.
  * Setzt eventuell Fehlermeldung
- * @param e
  */
 function checkValidity(e) {
   if (!e.target.value) {
@@ -52,9 +52,13 @@ function checkValidity(e) {
   }
 }
 
+/**
+ * Fügt einen Spieler zum Turnier hinzu
+ */
 async function addPlayer() {
   isLoading.value = true;
 
+  // Versucht den Spieler hinzuzufügen. Je nach Erfolg werden die Daten des Formulars zurück gesetzt
   try {
     await tournamentStore.addPlayerToTournament(pinOrMail.value, tournamentId, faction.value, team.value);
     isLoading.value = false;
@@ -66,9 +70,13 @@ async function addPlayer() {
   }
 }
 
+/**
+ * Entfernt einen Spieler aus dem Turnier
+ */
 async function removePlayer(id) {
   isLoading.value = true;
 
+  // Öffnen eines Bestätigungsdialogs
   confirm.require({
     message: "Are you sure you want to remove the player?",
     header: "REMOVE PLAYER",
@@ -79,6 +87,7 @@ async function removePlayer(id) {
     acceptProps: {
       label: "Remove"
     },
+    // Bei Bestätigen wird der Spieler entfernt
     accept: async () => {
       try {
         await tournamentStore.removePlayerFromTournament(id, tournamentId);
@@ -93,9 +102,13 @@ async function removePlayer(id) {
   })
 }
 
+/**
+ * Startet das Turnier. Danach kann man keine weiteren Spieler hinzufügen oder entfernen. Leitet automatisch zur Turnierübersicht weiter
+ */
 async function startTournament() {
   isLoading.value = true;
 
+  // Öffnen eines Bestätigungsdialogs
   confirm.require({
     message: "Are you sure you want to start the tournament? You won't be able to manage the participants afterwards.",
     header: "START TOURNAMENT",
@@ -106,6 +119,7 @@ async function startTournament() {
     acceptProps: {
       label: "Start Tournament"
     },
+    // Bei Bestätigen wird das Turnier gestartet
     accept: async () => {
       try {
         await tournamentStore.startTournament(tournamentId);

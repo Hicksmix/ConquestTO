@@ -13,9 +13,14 @@ onMounted(async () => {
   // Authentifizierung überprüfen
   if (!isAuthenticated.value) await router.push({name: 'Login'});
 
+  // Laden der Turniere
   await tournamentStore.getTournamentsForOrga();
 })
 
+
+/**
+ * Öffnen eines Turniers. Je nach Status des Turniers in der Übersicht oder in der Add Players Ansicht
+ */
 async function openTournament(tournament) {
   if(tournament.state === 'created') {
     await router.push({name: 'Add Players', params: {id: tournament.id}});

@@ -24,7 +24,6 @@ onMounted(() => {
 /**
  * Versucht Nutzer mit den eingegebenen Werten einzuloggen.
  * Bei Erfolg -> Weiterleitung zur Startseite
- * Fängt Fehler beim Login ab und gibt diese in der Konsole aus.
  */
 async function handleLogin() {
   isLoading.value = true;
@@ -47,7 +46,6 @@ function disableSubmit() {
 /**
  * Überprüft, ob das übergebene Eingabefeld (email, password) einen gültigen Wert enthält.
  * Setzt eventuell Fehlermeldung
- * @param e
  */
 function checkValidity(e) {
   if (!e.target.value) {

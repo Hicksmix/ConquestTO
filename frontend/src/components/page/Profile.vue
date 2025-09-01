@@ -21,11 +21,19 @@ const oldPassword = ref('');
 const newPassword = ref('');
 const repeatNewPassword = ref('');
 
+/**
+ * Überprüft, ob Nutzer authentifiziert ist.
+ * Wenn der Nutzer bereits eingeloggt ist -> Weiterleitung Loginseite.
+ * Lädt sonst die Userdaten
+ */
 onMounted(() => {
   if (!isAuthenticated.value) router.push({name: 'Login'});
   loadData();
 })
 
+/**
+ * Laden der Userdaten
+ */
 async function loadData() {
   await authStore.loadUser();
   email.value = authStore.currentUser.email;
@@ -34,9 +42,8 @@ async function loadData() {
 }
 
 /**
- * Überprüft, ob das übergebene Eingabefeld (email, password) einen gültigen Wert enthält.
+ * Überprüft, ob das übergebene Eingabefeld einen gültigen Wert enthält.
  * Setzt eventuell Fehlermeldung
- * @param e
  */
 function checkValidity(e) {
   if (!e.target.value) {
@@ -59,6 +66,9 @@ function checkUsernameValidity(e) {
   }
 }
 
+/**
+ * Loggt den User bei Bestätigen eines Dialoges aus
+ */
 function logout() {
   confirm.require({
     message: "Are you sure you want to log out?",
@@ -77,22 +87,34 @@ function logout() {
   })
 }
 
+/**
+ * Speichert die editierten Profildaten
+ */
 async function editProfile() {
   await authStore.editUser(username.value, password.value, pbwPin.value);
   password.value = '';
   editModeOn.value = false;
 }
 
+/**
+ * Bricht das Editieren der Profildaten ab und setzt die Werte wieder zurück
+ */
 async function cancelEditProfile() {
   await loadData();
   password.value = '';
   editModeOn.value = false;
 }
 
+/**
+ * Überprüft, ob das Formular zum Anpassen der Profildaten valide ist
+ */
 function checkFormValid() {
   return (username.value.length >= 3 && username.value.length <= 30 && password.value.length > 0);
 }
 
+/**
+ * Öffnet den Dialog zum Ändern des Passwortes und setzt dessen Formularfelder zurück, sollten sie bereits ausgefüllt sein
+ */
 function openChangePasswordDialog() {
   oldPassword.value = "";
   newPassword.value = "";
@@ -100,8 +122,10 @@ function openChangePasswordDialog() {
   dialogVisible.value = true;
 }
 
+/**
+ * Speichert das aktualisierte Passwort und setzt die Formularfelder zurück
+ */
 async function changePassword() {
-  console.log('test')
   try {
     await authStore.editUserPassword(oldPassword.value, newPassword.value);
     oldPassword.value = "";
@@ -142,6 +166,9 @@ function checkRepeatPasswordValidity(e) {
   }
 }
 
+/**
+ * Überprüft, ob das Formular zum Passwort Ändern valide ist
+ */
 function checkPasswordFormValid() {
   return (oldPassword.value.length > 0 && repeatNewPassword.value);
 }

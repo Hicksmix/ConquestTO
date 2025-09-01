@@ -5,7 +5,7 @@ const {
     getPlayerOverView, setTournamentState, setCurrentRoundState, setCurrentRound
 } = require("../database/tournament")
 const {makeId} = require("../helper/makeId");
-const {getUserByMail, getUserByPin} = require("../database/user");
+const {getUserByMail, getUserByPin, getUser} = require("../database/user");
 const {getGamesForTournamentRound, createGames, getMatchupsToAvoidForTournamentUser} = require("../database/game");
 const {Swiss} = require("tournament-pairings");
 const {
@@ -41,6 +41,12 @@ async function createTournament(name, date, orgaId, res) {
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
+/**
+ * Lädt eine Turnierübersicht an Turnieren, die der User organisiert hat
+ * @param orgaId
+ * @param res
+ * @returns {Promise<*>}
+ */
 async function loadTournamentsForOrga(orgaId, res) {
     const title = "Error loading tournaments";
 
@@ -61,6 +67,12 @@ async function loadTournamentsForOrga(orgaId, res) {
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
+/**
+ * Lädt die Daten eines Turniers
+ * @param tournamentId
+ * @param res
+ * @returns {Promise<*>}
+ */
 async function loadTournament(tournamentId, res) {
     const title = "Error loading tournament";
 
@@ -81,6 +93,15 @@ async function loadTournament(tournamentId, res) {
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
+/**
+ * Fügt einen Spieler anhand seiner pbwPin oder Mail zu einem Turnier hinzu und liefert die neuen Turnierdaten zurück
+ * @param pinOrMail
+ * @param tournamentId
+ * @param faction
+ * @param teamName
+ * @param res
+ * @returns {Promise<*>}
+ */
 async function addPlayerToTournament(pinOrMail, tournamentId, faction, teamName, res) {
     const title = "Error adding player to tournament";
 
@@ -91,10 +112,13 @@ async function addPlayerToTournament(pinOrMail, tournamentId, faction, teamName,
 
     const tournament = await getTournament(tournamentId);
     let user = await getUserByPin(pinOrMail);
-    if (!user) user = await getUserByMail(pinOrMail);
+    if (!user) user = await getUserByMail(pinOrMail); // Falls der User nicht per pbwPin gefunden werden konnte
 
+    // Überprüft, ob das Turnier und der User gefunden wurden und noch Spieler zum Turnier hinzugefügt werden können
     if (tournament && user && tournament.state === 'created') {
         tournament.players = await getPlayerOverView(tournamentId);
+
+        // Überprüft, ob der User bereits dem Turnier hinzugefügt wurde
         if (tournament.players.filter(player => player.id === user.id).length > 0) {
             res.status(409);
             return res.json({title, text: "Player already added to tournament"});
@@ -112,6 +136,13 @@ async function addPlayerToTournament(pinOrMail, tournamentId, faction, teamName,
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
+/**
+ * Entfernt einen User aus einem Turnier und liefert die neuen Turnierdaten zurück
+ * @param userId
+ * @param tournamentId
+ * @param res
+ * @returns {Promise<*>}
+ */
 async function removePlayerFromTournament(userId, tournamentId, res) {
     const title = "Error removing player from tournament";
 
@@ -120,20 +151,33 @@ async function removePlayerFromTournament(userId, tournamentId, res) {
         return res.json({title, text: "Incomplete data"});
     }
 
-    const result = await deleteTournamentUser(userId, tournamentId);
-    if (result) {
-        const tournament = await getTournament(tournamentId);
-        if (tournament) {
-            tournament.players = await getPlayerOverView(tournamentId);
-            return res.json({tournament});
+    const tournament = await getTournament(tournamentId);
+    let user = await getUser(userId);
+
+    // Überprüft, ob das Turnier und der User gefunden wurden und noch Spieler vom Turnier entfernt werden kann
+    if (tournament && user && tournament.state === 'created') {
+        const result = await deleteTournamentUser(userId, tournamentId);
+        if (result) {
+            const tournament = await getTournament(tournamentId);
+            if (tournament) {
+                tournament.players = await getPlayerOverView(tournamentId);
+                return res.json({tournament});
+            }
+            return res.send();
         }
-        return res.send();
     }
 
     res.status(500);
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
+/**
+ * Startet ein Turnier, nachdem alle Spieler verwaltet wurden und liefert die neuen Turnierdaten zurück
+ * @param tournamentId
+ * @param orgaId
+ * @param res
+ * @returns {Promise<*>}
+ */
 async function startTournament(tournamentId, orgaId, res) {
     const title = "Error starting tournament";
 
@@ -149,10 +193,13 @@ async function startTournament(tournamentId, orgaId, res) {
         return res.json({title, text: "Only the orga can start a tournament"});
     }
 
+    // Aktualisieren des TournamentStates
     if (await setTournamentState("ongoing", tournamentId)) {
+        // Erstellen der ersten Runde
         if (await setCurrentRound(tournamentId, tournament.currentRound + 1) && await setCurrentRoundState(tournamentId, "created")) {
             tournament = await getTournament(tournamentId);
 
+            // Generiert neue Matchups und erstellt entsprechend die Spiele
             tournament.games = await createMatchups(tournament);
 
             if (await createGames(tournament.games)) {
@@ -161,12 +208,18 @@ async function startTournament(tournamentId, orgaId, res) {
                 return res.json(tournament);
             }
         }
-
-        res.status(500);
-        return res.json({title, text: "Something went wrong. Please try again later"});
     }
+    res.status(500);
+    return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
+/**
+ * Beendet ein Turnier und liefert die neuen Turnierdaten zurück
+ * @param tournamentId
+ * @param orgaId
+ * @param res
+ * @returns {Promise<*>}
+ */
 async function endTournament(tournamentId, orgaId, res) {
     const title = "Error ending tournament";
 
@@ -196,6 +249,13 @@ async function endTournament(tournamentId, orgaId, res) {
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
+/**
+ * Beendet die aktuelle Runde eines Turniers und liefert die neuen Turnierdaten zurück
+ * @param tournamentId
+ * @param orgaId
+ * @param res
+ * @returns {Promise<*>}
+ */
 async function endTournamentRound(tournamentId, orgaId, res) {
     const title = "Error ending tournament round";
 
@@ -211,6 +271,7 @@ async function endTournamentRound(tournamentId, orgaId, res) {
         return res.json({title, text: "Only the orga can end a tournament round"});
     }
 
+    // Überprüft, ob die Runde beendet werden kann und beendet sie ggf.
     if (await checkCanEndRound(tournament) && await setCurrentRoundState(tournamentId, "ended")) {
         tournament = await getTournament(tournamentId);
         tournament.games = await getGamesForTournamentRound(tournament.id, tournament.currentRound);
@@ -222,6 +283,13 @@ async function endTournamentRound(tournamentId, orgaId, res) {
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
+/**
+ * Erstellt eine neue Turnierrunde und liefert die neuen Turnierdaten zurück
+ * @param tournamentId
+ * @param orgaId
+ * @param res
+ * @returns {Promise<*>}
+ */
 async function createNewRound(tournamentId, orgaId, res) {
     const title = "Error creating tournament round";
 
@@ -237,9 +305,11 @@ async function createNewRound(tournamentId, orgaId, res) {
         return res.json({title, text: "Only the orga can create a tournament round"});
     }
 
+    // Überprüft, ob die letzte Runde abgeschlossen wurde und alle Daten korrekt aktualisiert wurden
     if (tournament.currentRoundState === "ended" && await setCurrentRound(tournamentId, tournament.currentRound + 1) && await setCurrentRoundState(tournamentId, "created")) {
         tournament = await getTournament(tournamentId);
 
+        // Generieren der Matchups der neuen Runde
         let games = await createMatchups(tournament);
 
         if (await createGames(games)) {
@@ -253,6 +323,13 @@ async function createNewRound(tournamentId, orgaId, res) {
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
+/**
+ * Startet die aktuelle Runde und liefert die neuen Turnierdaten zurück
+ * @param tournamentId
+ * @param orgaId
+ * @param res
+ * @returns {Promise<*>}
+ */
 async function startRound(tournamentId, orgaId, res) {
     const title = "Error starting tournament round";
 
@@ -268,11 +345,14 @@ async function startRound(tournamentId, orgaId, res) {
         return res.json({title, text: "Only the orga can start a tournament round"});
     }
 
+    // Überprüft, ob die Runde gestartet werden kann und startet sie
     if (tournament.currentRoundState === "created" && await setCurrentRoundState(tournamentId, "ongoing")) {
         tournament = await getTournament(tournamentId);
         tournament.games = await getGamesForTournamentRound(tournament.id, tournament.currentRound);
-        tournament.players = await getPlayerOverView(tournamentId);;
+        tournament.players = await getPlayerOverView(tournamentId);
 
+        // Überprüft, ob ein Spieler hoch/runter gepaart wurde, oder ein Bye erhalten hat und setzt entsprechend Flags,
+        // um dies für kommende Runden zu vermeiden
         let p1;
         let p2;
         tournament.games.forEach((game) => {
@@ -295,15 +375,28 @@ async function startRound(tournamentId, orgaId, res) {
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
+/**
+ * Überprüft, ob die aktuelle Turnierrunde beendet werden kann
+ * Dies ist nur möglich, wenn sowohl die aktuelle Runde, als auch das Turnier 'ongoing' sind
+ * und alle Spiele der aktuellen Runde beendet wurden
+ * @param tournament
+ * @returns {Promise<boolean>}
+ */
 async function checkCanEndRound(tournament) {
     const currentGames = await getGamesForTournamentRound(tournament.id, tournament.currentRound);
     const hasOngoingGames = currentGames.filter((game) => !game.ended).length > 0;
     return !hasOngoingGames && tournament.state === 'ongoing' && tournament.currentRoundState === "ongoing";
 }
 
+/**
+ * Generiert matchups für eine Turnierrunde anhand des Schweizer Systems
+ * @param tournament
+ * @returns {Promise<Match[]>}
+ */
 async function createMatchups(tournament) {
     let players = await getPlayerOverView(tournament.id);
 
+    // Mappen der Spielerdaten, um sie für die Library nutzbar zu machen
     players = players.map((player) => {
         return {
             id: player.id,
@@ -315,17 +408,22 @@ async function createMatchups(tournament) {
         };
     });
 
+    // Erstellt für jeden Spieler eine Liste mit Spielern, die für die Paarungen vermieden werden sollen
     for (const player of players) {
+        // In Runden nach der ersten, sollen Mitspieler vermieden werden, gegen die der Spieler bereits angetreten ist
         if (tournament.currentRound !== 1)
             player.avoid = await getMatchupsToAvoidForTournamentUser(player.id, tournament.id);
+        // In der ersten Turnierrunde sollen Mitspieler aus dem Team des Spielers vermieden werden
         else if (player.teamName) {
             let team = (await getTeam(player.teamName, tournament.id));
             player.avoid = team;
         }
     }
 
+    // Generiert die Paarungen
     let games = Swiss(players, tournament.currentRound);
 
+    // Map, um die Daten für uns verarbeitbar zu machen
     games = games.map((game) => {
         return [
             game.player1,

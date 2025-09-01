@@ -30,21 +30,39 @@ onMounted(async () => {
   await tournamentStore.loadTournamentRound(roundNr.value);
 })
 
-function endGame(gameId) {
-  tournamentStore.endGame(gameId)
+/**
+ * Beendet ein Spiel und trägt automatisch den Sieger ein
+ */
+async function endGame(game) {
+  if (game.score1 > game.score2 || !game.player2Id) game.winnerId = game.player1Id;
+  else if (game.score2 > game.score1) game.winnerId = game.player2Id;
+  else game.winnerId = null;
+  await tournamentStore.updateGame(game);
+  await tournamentStore.endGame(game.id)
 }
 
+/**
+ * Eröffnet ein Spiel. Nur möglich, wenn die aktuell angezeigte Runde am laufen ist
+ */
 function reopenGame(gameId) {
   tournamentStore.reopenGame(gameId)
 }
 
+/**
+ * Spichert die aktualisierten Daten eines Spiels und trägt automatisch den Sieger ein
+ */
 function saveGame(game) {
+  if(game.score2.length < 1) game.score2 = 0;
+  if(game.score1.length < 1) game.score1 = 0;
   if (game.score1 > game.score2 || !game.player2Id) game.winnerId = game.player1Id;
   else if (game.score2 > game.score1) game.winnerId = game.player2Id;
   else game.winnerId = null;
   tournamentStore.updateGame(game);
 }
 
+/**
+ * Beendet, wenn möglich, die aktuelle Runde, nach Bestätigen eines Dialogs
+ */
 function endRound() {
   if (tournamentData.value.canEndRound) {
     confirm.require({
@@ -64,6 +82,9 @@ function endRound() {
   }
 }
 
+/**
+ * Erstellt, wenn möglich, eine neue Runde, nach Bestätigen eines Dialogs und wählt die neue Runde direkt aus
+ */
 async function createNewRound() {
   if (tournamentData.value.currentRoundState === "ended") {
     confirm.require({
@@ -84,6 +105,9 @@ async function createNewRound() {
   }
 }
 
+/**
+ * Beginnt, wenn möglich, eine neue Runde, nach Bestätigen eines Dialogs und wählt die neue Runde direkt aus
+ */
 async function startRound() {
   if (tournamentData.value.currentRoundState === "created") {
     confirm.require({
@@ -104,12 +128,18 @@ async function startRound() {
   }
 }
 
+/**
+ * Öffnet den Dialog zum Wechseln eines Spielers mit einem anderen
+ */
 function openSwapDialog(player, game) {
   player1.value = player;
   gameForSwap.value = game;
   dialogVisible.value = true;
 }
 
+/**
+ * Speichert die ausgetauschten Spieler
+ */
 async function swapPlayers() {
   const games = tournamentData.value.games;
   const game2Id = games.find((game) => game.player1Id === player2.value || game.player2Id === player2.value).id;
@@ -120,11 +150,17 @@ async function swapPlayers() {
   dialogVisible.value = false;
 }
 
+/**
+ * Wählt eine Turnierrunde aus, die angezeigt werden soll
+ */
 async function selectRound(round) {
   roundNr.value = round;
   await tournamentStore.loadTournamentRound(roundNr.value);
 }
 
+/**
+ * Beendet ein Turnier nach Bestätigen eines Dialogs und kehrt direkt zur Turnierübersicht zurück
+ */
 async function endTournament() {
   confirm.require({
     message: "Are you sure you want to end the tournament and generate rankings? You won't be able to undo this.",
@@ -147,7 +183,8 @@ async function endTournament() {
 <template>
   <div class="content m-auto">
     <div class="container-with-background">
-      <span class="pi pi-chevron-left icon-button back-button" v-on:click="router.push({name: 'Tournament', params: {id: tournamentId}})"></span>
+      <span class="pi pi-chevron-left icon-button back-button"
+            v-on:click="router.push({name: 'Tournament', params: {id: tournamentId}})"></span>
       <img src="./../../assets/images/logo.svg">
       <div class="mb-3">
         <h1 class="form-header m-0 text-center">{{ tournamentData.name }}</h1>
@@ -191,7 +228,7 @@ async function endTournament() {
           <div
               v-if="!tournamentData.ended && tournamentData.currentRound === roundNr && tournamentData.currentRoundState !== 'ended'">
             <div v-if="tournamentData.currentRoundState === 'ongoing'">
-              <button class="icon-button" v-if="!game.ended" v-on:click="endGame(game.id)">
+              <button class="icon-button" v-if="!game.ended" v-on:click="endGame(game)">
                 <span class="pi pi-check-circle fs-4"></span>
               </button>
               <button class="icon-button" v-else v-on:click="reopenGame(game.id)">

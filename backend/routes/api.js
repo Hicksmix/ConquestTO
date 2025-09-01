@@ -14,6 +14,7 @@ const {
 const {loadRoundForTournament, endGame, reopenGame, updateGameScore, swapPlayers} = require("../src/controller/game");
 let router = express.Router();
 
+// User
 router.post('/user/login', async function (req, res) {
     await login(req.body.email, req.body.password, res);
 });
@@ -30,6 +31,7 @@ router.post('/user/edit-password', verifyJWT, async function (req, res) {
     await editUserPassword(verify(req.query.jwt, process.env.JWT_SECRET).userid, req.body.oldPassword, req.body.newPassword, res)
 });
 
+// Tournament
 router.put('/tournament/create', verifyJWT, async function (req, res) {
     await createTournament(req.body.name, req.body.date, verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
 });
@@ -61,6 +63,7 @@ router.post('/tournament/start-round', verifyJWT, async function(req, res) {
     await startRound(req.body.tournamentId, verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
 });
 
+// Games
 router.get('/games/get-tournament-round', verifyJWT, async function (req, res) {
     await loadRoundForTournament(req.query.tournamentId, req.query.roundNr, res)
 });
