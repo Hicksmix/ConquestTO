@@ -6,7 +6,7 @@
 let express = require('express');
 const {verify} = require("jsonwebtoken");
 const {verifyJWT} = require("../src/middleware/verifyJWT");
-const {login, register, loadUser, editUser} = require("../src/controller/user")
+const {login, register, loadUser, editUser, editUserPassword} = require("../src/controller/user")
 const {
     loadTournamentsForOrga, createTournament, loadTournament, addPlayerToTournament, removePlayerFromTournament,
     startTournament, endTournamentRound, createNewRound, endTournament, startRound
@@ -25,6 +25,9 @@ router.get('/user/load', verifyJWT, async function (req, res) {
 });
 router.post('/user/edit', verifyJWT, async function (req, res) {
     await editUser(verify(req.query.jwt, process.env.JWT_SECRET).userid, req.body.username, req.body.password, req.body.pbwPin, res)
+});
+router.post('/user/edit-password', verifyJWT, async function (req, res) {
+    await editUserPassword(verify(req.query.jwt, process.env.JWT_SECRET).userid, req.body.oldPassword, req.body.newPassword, res)
 });
 
 router.put('/tournament/create', verifyJWT, async function (req, res) {

@@ -1,7 +1,7 @@
 const {sha256} = require("../helper/sha256");
 const {makeId} = require("../helper/makeId")
 const {sign} = require("jsonwebtoken");
-const {getUserByMail, createNewUser, getUserByName, getUserByPin, getUser, updateUser} = require("../database/user")
+const {getUserByMail, createNewUser, getUserByName, getUserByPin, getUser, updateUser, updateUserPassword} = require("../database/user")
 
 /**
  * Loggt einen User anhand von Benutzernamen und Passwort-Hash ein und gibt im Erfolgsfall ein JWT im result zurück
@@ -62,6 +62,7 @@ async function register(username, password, email, pbwPin, res) {
         return res.json({title, text: "Email address already taken"});
     }
 
+    if (pbwPin.length < 1) pbwPin = undefined;
     if (pbwPin) {
         user = await getUserByPin(pbwPin);
 
@@ -112,6 +113,7 @@ async function editUser(id, username, password, pbwPin, res) {
         return res.json({title, text: "Username already taken"});
     }
 
+    if (pbwPin.length < 1) pbwPin = undefined;
     if (pbwPin) {
         user = await getUserByPin(pbwPin);
 
@@ -136,4 +138,34 @@ async function editUser(id, username, password, pbwPin, res) {
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
-module.exports = {login, register, loadUser, editUser}
+async function editUserPassword(id, oldPassword, newPassword, res) {
+    const title = "Error updating password";
+
+    if (!(oldPassword?.length > 0) || !(newPassword?.length > 0)) {
+        res.status(400);
+        return res.json({title, text: "Incomplete data"});
+    }
+
+    let user = await getUser(id);
+
+    if (user === null) {
+        res.status(400);
+        return res.json({title, text: "User not found"});
+    }
+
+    if (user.password !== await sha256(oldPassword)) {
+        res.status(400);
+        return res.json({title, text: "Wrong password"});
+    }
+
+    if (await updateUserPassword(id, await sha256(newPassword))) {
+        user = await getUser(id);
+        user.password = null;
+        return res.json(user);
+    }
+
+    res.status(500);
+    return res.json({title, text: "Something went wrong. Please try again later"});
+}
+
+module.exports = {login, register, loadUser, editUser, editUserPassword}

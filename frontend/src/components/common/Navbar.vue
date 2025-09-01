@@ -14,8 +14,7 @@ onMounted(() => {
 
 <template>
   <div class="content">
-    <div>
-      <span class="pi pi-bars icon-button" style="font-size: 1.5rem"></span>
+    <div style="width: 24px">
     </div>
     <div>
       <span class="pi pi-home icon-button" style="font-size: 1.5rem" v-on:click="router.push({ name: 'Landing Page'})"></span>

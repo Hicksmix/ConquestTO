@@ -1,6 +1,5 @@
 // src/store/auth.js
-import { defineStore } from 'pinia';
-import { getActivePinia } from "pinia";
+import {defineStore, getActivePinia} from 'pinia';
 import axios from '../axios';
 
 export const useAuthStore = defineStore('auth', {
@@ -12,7 +11,7 @@ export const useAuthStore = defineStore('auth', {
         // Führt den Login-Prozess durch
         async login(email, password) {
             try {
-                const response = await axios.post('/user/login', { email, password });
+                const response = await axios.post('/user/login', {email, password});
                 if (response.data.jwt) {
                     this.isAuthenticated = true;
 
@@ -28,7 +27,7 @@ export const useAuthStore = defineStore('auth', {
         // Registriert einen neuen Benutzer und meldet ihn an
         async register(username, password, email, pbwPin) {
             try {
-                const response = await axios.put('/user/register', { username, password, email, pbwPin });
+                const response = await axios.put('/user/register', {username, password, email, pbwPin});
                 if (response.data.jwt) {
                     this.isAuthenticated = true;
 
@@ -42,7 +41,7 @@ export const useAuthStore = defineStore('auth', {
             }
         },
         async loadUser() {
-            if(this.isAuthenticated) {
+            if (this.isAuthenticated) {
                 try {
                     const response = await axios.get('/user/load');
                     if (response.data) {
@@ -54,15 +53,26 @@ export const useAuthStore = defineStore('auth', {
                 }
             }
         },
-        // Registriert einen neuen Benutzer und meldet ihn an
+        // Ändert Username und Pin für den aktuellen User
         async editUser(username, password, pbwPin) {
             try {
-                const response = await axios.post('/user/edit', { username, password, pbwPin });
+                const response = await axios.post('/user/edit', {username, password, pbwPin});
                 if (response.data) {
                     this.currentUser = response.data.user;
                 }
             } catch (error) {
-                console.error('Register failed:', error);
+                console.error('Edit User failed:', error);
+                throw error;
+            }
+        },
+        async editUserPassword(oldPassword, newPassword) {
+            try {
+                const response = await axios.post('/user/edit-password', {oldPassword, newPassword});
+                if (response.data) {
+                    this.currentUser = response.data.user;
+                }
+            } catch (error) {
+                console.error('Edit Password failed:', error);
                 throw error;
             }
         },

@@ -1,5 +1,7 @@
 // src/axios.js
 import axios from 'axios';
+import { toastStore } from '@/store/toast';
+import { useAuthStore } from '@/store/auth';
 
 //configure cors
 axios.defaults.withCredentials = true;
@@ -16,5 +18,19 @@ axios.interceptors.request.use((config) => {
 }, (error) => {
     return Promise.reject(error);
 });
+
+// Interceptor, der Errors vom Backend abfängt und als Toast anzeigt
+axios.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    async (error) => {
+        if (error.response?.data?.title) {
+            toastStore.toasts.push({ summary: error.response.data.title, detail: error.response.data.text, severity: 'error' });
+            if(error.response.data.auth === false && await useAuthStore().isAuthenticated) useAuthStore().logout();
+        }
+        return Promise.reject(error);
+    }
+);
 
 export default axios;

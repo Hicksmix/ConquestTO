@@ -28,6 +28,7 @@ async function openTournament(tournament) {
 <template>
   <div class="content m-auto">
     <div class="container-with-background">
+      <span class="pi pi-chevron-left icon-button back-button" v-on:click="router.push({name: 'Landing Page'})"></span>
       <img src="./../../assets/images/logo.svg">
       <h1 class="form-header mb-3 text-center">MY TOURNAMENTS</h1>
         <ul class="tournament-cards card-list w-100">
@@ -44,7 +45,7 @@ async function openTournament(tournament) {
         </ul>
       <div class="button-container">
         <button v-on:click="router.push({ name: 'Create Tournament' })">Create</button>
-        <button>Join</button>
+        <button :disabled class="disabled">Join</button>
       </div>
     </div>
   </div>

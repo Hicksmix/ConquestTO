@@ -78,7 +78,7 @@
 body {
     min-height: 100vh;
     color: var(--color-text);
-    background: linear-gradient(0deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("./images/background.png") center center / cover;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url("./images/background.png") center center / cover;
     transition: color 0.5s,
     background-color 0.5s;
     line-height: 1.6;

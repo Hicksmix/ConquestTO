@@ -19,7 +19,7 @@ const isLoading = ref(false);
  * Ruft Validierungsfunktionen für die initialen Formulareingaben auf.
  */
 onMounted(() => {
-  if (isAuthenticated.value) router.push({ name: 'Profile' })
+  if (isAuthenticated.value) router.push({name: 'Profile'})
   checkEmailValidity({target: document.getElementById('email')});
   checkUsernameValidity({target: document.getElementById('username')});
   checkPasswordValidity({target: document.getElementById('password')});
@@ -35,6 +35,7 @@ async function handleRegister() {
   try {
     await authStore.register(username.value, password.value, email.value, pbwPin.value);
     isLoading.value = false;
+    await router.push({name: 'Landing Page'});
   } catch (error) {
     isLoading.value = false;
   }
@@ -54,9 +55,9 @@ function disableSubmit() {
  */
 function checkEmailValidity(e) {
   if (email.value.length < 3 || email.value.length > 50) {
-    e.target.setCustomValidity("Die Email muss zwischen 3 und 50 Zeichen lang sein");
+    e.target.setCustomValidity("The email must contain between 3 and 30 characters");
   } else if (email.value.indexOf("@") === -1 || email.value.indexOf(" ") !== -1) {
-    e.target.setCustomValidity("Ungültige Email");
+    e.target.setCustomValidity("Invalid email");
   } else {
     e.target.setCustomValidity("")
   }
@@ -69,7 +70,7 @@ function checkEmailValidity(e) {
  */
 function checkUsernameValidity(e) {
   if (username.value.length < 3 || username.value.length > 30) {
-    e.target.setCustomValidity("Der Username muss zwischen 3 und 30 Zeichen lang sein");
+    e.target.setCustomValidity("The username must contain between 3 and 30 characters");
   } else {
     e.target.setCustomValidity("")
   }
@@ -84,9 +85,9 @@ function checkUsernameValidity(e) {
 function checkPasswordValidity(e) {
   let regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@.#$!%*?€§=&])[A-Za-z\d@.#$!€=§%*?&]{8,30}$/;
   if (password.value.length < 8 || password.value.length > 30) {
-    //e.target.setCustomValidity("Das Passwort muss zwischen 8 und 30 Zeichen lang sein");
+    e.target.setCustomValidity("The password must contain between 8 and 30 characters");
   } else if (!regex.test(password.value)) {
-    //e.target.setCustomValidity("Das Passwort muss mindestens eine Zahl, einen Großbuchstaben, einen Kleinbuchstaben und ein Sonderzeichen beinhalten")
+    e.target.setCustomValidity("The password must contain at least one lower case and one upper case letter, as well a a number and a special character");
   } else {
     e.target.setCustomValidity("")
   }
@@ -100,7 +101,7 @@ function checkPasswordValidity(e) {
  */
 function checkRepeatPasswordValidity(e) {
   if (repeatPassword.value !== password.value) {
-    e.target.setCustomValidity("Die Passwörter stimmen nicht überein");
+    e.target.setCustomValidity("The passwords do not match");
   } else {
     e.target.setCustomValidity("")
   }
@@ -137,7 +138,7 @@ function checkRepeatPasswordValidity(e) {
       </div>
       <div class="button-container mt-4">
         <button type="submit" :disabled="disableSubmit()"
-                :class="{ ['button-loading']: isLoading }">Register
+                :class="{ ['button-loading']: isLoading, ['disabled']: disableSubmit() }">Register
         </button>
         <button type="button" class="secondary"
                 v-on:click="router.go(-1)">Cancel

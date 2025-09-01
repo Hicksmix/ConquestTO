@@ -5,7 +5,10 @@ import {useTournamentStore} from '@/store/tournament';
 import {filename} from 'pathe/utils'
 import router from './../../router';
 import {useRoute} from "vue-router";
+import ConfirmDialog from 'primevue/confirmdialog';
+import {useConfirm} from "primevue/useconfirm";
 
+const confirm = useConfirm();
 const route = useRoute();
 const authStore = useAuthStore();
 const tournamentStore = useTournamentStore()
@@ -66,28 +69,61 @@ async function addPlayer() {
 async function removePlayer(id) {
   isLoading.value = true;
 
-  try {
-    await tournamentStore.removePlayerFromTournament(id, tournamentId);
-    isLoading.value = false;
-  } catch (error) {
-    isLoading.value = false;
-  }
+  confirm.require({
+    message: "Are you sure you want to remove the player?",
+    header: "REMOVE PLAYER",
+    rejectProps: {
+      label: "Cancel",
+      severity: "secondary"
+    },
+    acceptProps: {
+      label: "Remove"
+    },
+    accept: async () => {
+      try {
+        await tournamentStore.removePlayerFromTournament(id, tournamentId);
+        isLoading.value = false;
+      } catch (error) {
+        isLoading.value = false;
+      }
+    },
+    reject: () => {
+      isLoading.value = false;
+    }
+  })
 }
 
 async function startTournament() {
   isLoading.value = true;
 
-  try {
-    await tournamentStore.startTournament(tournamentId);
-    isLoading.value = false;
-    await router.push({name: 'Tournament', params: {id: tournamentId}});
-  } catch (error) {
-    isLoading.value = false;
-  }
+  confirm.require({
+    message: "Are you sure you want to start the tournament? You won't be able to manage the participants afterwards.",
+    header: "START TOURNAMENT",
+    rejectProps: {
+      label: "Cancel",
+      severity: "secondary"
+    },
+    acceptProps: {
+      label: "Start Tournament"
+    },
+    accept: async () => {
+      try {
+        await tournamentStore.startTournament(tournamentId);
+        isLoading.value = false;
+        await router.push({name: 'Tournament', params: {id: tournamentId}});
+      } catch (error) {
+        isLoading.value = false;
+      }
+    },
+    reject: () => {
+      isLoading.value = false;
+    }
+  })
 }
 </script>
 
 <template>
+  <ConfirmDialog></ConfirmDialog>
   <div class="content m-auto">
     <div class="container-with-background">
       <img src="./../../assets/images/logo.svg">
@@ -147,7 +183,7 @@ async function startTournament() {
       </ul>
       <div class="button-container">
         <button type="button" :disabled="tournamentData?.players?.length < 1"
-                :class="{ ['button-loading']: isLoading, ['disabled']: tournamentData?.players?.length < 1 }"
+                :class="{ ['button-loading']: isLoading, ['disabled']: tournamentData?.players?.length < 2 }"
                 v-on:click="startTournament()">Start Tourney
         </button>
         <button type="button" :disabled="disableSubmit()"

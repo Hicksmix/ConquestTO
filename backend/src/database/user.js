@@ -140,4 +140,20 @@ async function updateUser(id, username, pbwPin) {
     }
 }
 
-module.exports = { getUserByMail, getUserByName, createNewUser, getUser, getUserByPin, updateUser }
+async function updateUserPassword(id, password) {
+    let conn;
+    try {
+        conn = await getConnection();
+        let row;
+        if (conn) {
+            row = await conn.query('update `users` set password = ? where id = ?', [password, id]);
+            return row.affectedRows === 1;
+        }
+    } catch (e) {
+        console.log(e);
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
+module.exports = { getUserByMail, getUserByName, createNewUser, getUser, getUserByPin, updateUser, updateUserPassword }

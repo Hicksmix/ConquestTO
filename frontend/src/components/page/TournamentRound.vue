@@ -6,8 +6,10 @@ import {useAuthStore} from '@/store/auth';
 import {useTournamentStore} from '@/store/tournament';
 import {useRoute} from "vue-router";
 import Dialog from 'primevue/dialog';
+import ConfirmDialog from 'primevue/confirmdialog';
+import {useConfirm} from "primevue/useconfirm";
 
-
+const confirm = useConfirm();
 const route = useRoute();
 const authStore = useAuthStore();
 const tournamentStore = useTournamentStore()
@@ -45,29 +47,66 @@ function saveGame(game) {
 
 function endRound() {
   if (tournamentData.value.canEndRound) {
-    tournamentStore.endTournamentRound();
+    confirm.require({
+      message: "Are you sure you want to end the tournament round? You won't be able to manage the current round afterwards.",
+      header: "END ROUND",
+      rejectProps: {
+        label: "Cancel",
+        severity: "secondary"
+      },
+      acceptProps: {
+        label: "End"
+      },
+      accept: () => {
+        tournamentStore.endTournamentRound();
+      }
+    })
   }
 }
 
 async function createNewRound() {
   if (tournamentData.value.currentRoundState === "ended") {
-    await tournamentStore.createTournamentRound();
-    roundNr.value = tournamentData.value.currentRound;
+    confirm.require({
+      message: "Are you sure you want to create a new tournament round? You won't be able to undo this.",
+      header: "CREATE NEW ROUND",
+      rejectProps: {
+        label: "Cancel",
+        severity: "secondary"
+      },
+      acceptProps: {
+        label: "Create"
+      },
+      accept: async () => {
+        await tournamentStore.createTournamentRound();
+        roundNr.value = tournamentData.value.currentRound;
+      }
+    })
   }
 }
 
 async function startRound() {
   if (tournamentData.value.currentRoundState === "created") {
-    await tournamentStore.startTournamentRound();
-    roundNr.value = tournamentData.value.currentRound;
+    confirm.require({
+      message: "Are you sure you want to start the tournament round? You won't be able to change matchups afterwards.",
+      header: "START ROUND",
+      rejectProps: {
+        label: "Cancel",
+        severity: "secondary"
+      },
+      acceptProps: {
+        label: "Start"
+      },
+      accept: async () => {
+        await tournamentStore.startTournamentRound();
+        roundNr.value = tournamentData.value.currentRound;
+      }
+    })
   }
 }
 
 function openSwapDialog(player, game) {
   player1.value = player;
   gameForSwap.value = game;
-  console.log(gameForSwap.value);
-  console.log(player1.value);
   dialogVisible.value = true;
 }
 
@@ -87,14 +126,28 @@ async function selectRound(round) {
 }
 
 async function endTournament() {
-  await tournamentStore.endTournament(tournamentId);
-  router.push({name: 'Tournament', params: {id: tournamentId}});
+  confirm.require({
+    message: "Are you sure you want to end the tournament and generate rankings? You won't be able to undo this.",
+    header: "END TOURNEY",
+    rejectProps: {
+      label: "Cancel",
+      severity: "secondary"
+    },
+    acceptProps: {
+      label: "END"
+    },
+    accept: async () => {
+      await tournamentStore.endTournament(tournamentId);
+      await router.push({name: 'Tournament', params: {id: tournamentId}});
+    }
+  })
 }
 </script>
 
 <template>
   <div class="content m-auto">
     <div class="container-with-background">
+      <span class="pi pi-chevron-left icon-button back-button" v-on:click="router.push({name: 'Tournament', params: {id: tournamentId}})"></span>
       <img src="./../../assets/images/logo.svg">
       <div class="mb-3">
         <h1 class="form-header m-0 text-center">{{ tournamentData.name }}</h1>
@@ -216,6 +269,7 @@ async function endTournament() {
       </div>
     </template>
   </Dialog>
+  <ConfirmDialog></ConfirmDialog>
 </template>
 
 <style scoped>

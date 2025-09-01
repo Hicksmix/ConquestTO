@@ -57,6 +57,7 @@ function checkValidity(e) {
 <template>
   <div class="content m-auto">
     <div class="container-with-background">
+      <span class="pi pi-chevron-left icon-button back-button" v-on:click="router.back()"></span>
       <img src="./../../assets/images/logo.svg">
       <form class="m-auto" @submit.prevent="createTournament">
         <h1 class="form-header text-center">CREATE TOURNAMENT</h1>

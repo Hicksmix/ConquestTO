@@ -8,6 +8,8 @@ import './assets/main.css';
 import PrimeVue from 'primevue/config';
 import Aura from '@primevue/themes/aura';
 import {definePreset} from '@primevue/themes';
+import ConfirmationService from 'primevue/confirmationservice';
+import ToastService from 'primevue/toastservice';
 
 // Falls eigenes Styling für Primevue genutzt werden soll
 // Siehe https://primevue.org/theming/styled/
@@ -32,5 +34,5 @@ app.use(router).use(pinia).use(PrimeVue, {
             darkModeSelector: false,
         }
     }
-});
+}).use(ConfirmationService).use(ToastService);
 app.mount('#app');

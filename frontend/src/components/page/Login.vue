@@ -31,7 +31,7 @@ async function handleLogin() {
   try {
     await authStore.login(email.value, password.value);
     isLoading.value = false;
-    router.push({name: 'Landing Page'})
+    await router.push({name: 'Landing Page'});
   } catch (error) {
     isLoading.value = false;
   }

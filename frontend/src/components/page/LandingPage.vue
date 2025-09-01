@@ -7,9 +7,9 @@ import router from './../../router';
     <img src="./../../assets/images/logo.svg">
     <div class="button-container mt-4 mx-auto">
       <button v-on:click="router.push({ name: 'My Tournaments' })">My Tournaments</button>
-      <button>Joined Tournaments</button>
+      <button :disabled="true" class="disabled">Joined Tournaments</button>
       <button v-on:click="router.push({ name: 'Create Tournament' })">Create Tournament</button>
-      <button>Enter Tournaments</button>
+      <button :disabled="true" class="disabled">Enter Tournaments</button>
     </div>
   </div>
 </template>
