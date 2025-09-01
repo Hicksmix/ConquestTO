@@ -219,7 +219,7 @@ async function endTournament() {
                 <span class="pi pi-crown winner-crown dark ms-1"
                       v-if="game.winnerId === game.player2Id && game.ended"></span>
                 <span class="ms-auto card-title"
-                      v-if="game.ended || tournamentData.currentRoundState !== 'ongoing'">{{ game.score2 }}</span>
+                      v-if="game.ended || tournamentData.currentRoundState !== 'ongoing' || !game.player2Id">{{ game.score2 }}</span>
                 <input class="ms-auto minimal-input" type="number" v-else v-model="game.score2"
                        v-on:blur="saveGame(game)">
               </div>
