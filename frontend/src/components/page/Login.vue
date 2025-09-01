@@ -63,17 +63,17 @@ function checkValidity(e) {
       <form class="login-form my-3" @submit.prevent="handleLogin">
         <h1 class="form-header text-center">LOGIN</h1>
         <div class="form-field">
-          <label for="email" class="form-label">Email address</label>
+          <label for="email" class="form-label">Email address*</label>
           <input v-model.trim="email" id="email" type="text" class="form-control" @input="checkValidity">
         </div>
         <div class="form-field">
-          <label for="password" class="form-label">Password</label>
+          <label for="password" class="form-label">Password*</label>
           <input v-model.trim="password" id="password" type="password" class="form-control" @input="checkValidity">
         </div>
 
         <div class="button-container mt-4">
           <button type="submit" :disabled="disableSubmit()"
-                  :class="{ ['button-loading']: isLoading }">Log in
+                  :class="{ ['button-loading']: isLoading, ['disabled']: disableSubmit() }">Log in
           </button>
           <button type="button" class="secondary"
                   v-on:click="router.push({ name: 'Register' })">Sign up

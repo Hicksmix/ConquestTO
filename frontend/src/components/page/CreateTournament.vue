@@ -63,17 +63,17 @@ function checkValidity(e) {
       <form class="m-auto" @submit.prevent="createTournament">
         <h1 class="form-header text-center">CREATE TOURNAMENT</h1>
         <div class="form-field">
-          <label for="name" class="form-label">Name</label>
+          <label for="name" class="form-label">Name*</label>
           <input v-model.trim="name" id="name" type="text" class="form-control" @input="checkValidity">
         </div>
         <div class="form-field">
-          <label for="date" class="form-label">Date</label>
+          <label for="date" class="form-label">Date*</label>
           <input v-model.trim="date" id="date" type="date" class="form-control" @input="checkValidity">
         </div>
 
         <div class="button-container mt-4">
           <button class="button" type="submit" :disabled="disableSubmit()"
-                  :class="{ ['button-loading']: isLoading }">Submit
+                  :class="{ ['button-loading']: isLoading, ['disabled']: disableSubmit() }">Submit
           </button>
         </div>
       </form>

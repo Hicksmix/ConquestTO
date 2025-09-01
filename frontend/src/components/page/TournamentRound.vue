@@ -178,6 +178,13 @@ async function endTournament() {
     }
   })
 }
+
+/**
+ * Kontrolliert, ob der "Save"-Button beim Spielertausch aktiviert oder deaktiviert ist.
+ */
+function disableSubmit() {
+  return !player2.value;
+}
 </script>
 
 <template>
@@ -301,8 +308,9 @@ async function endTournament() {
     </form>
     <template #footer>
       <div class="button-container">
-        <button v-on:click="swapPlayers()">Save</button>
-        <button v-on:click="dialogVisible=false">Close</button>
+        <button v-on:click="swapPlayers()"  :disabled="disableSubmit()"
+                :class="{ ['disabled']: disableSubmit() }">Save</button>
+        <button class="secondary" v-on:click="dialogVisible=false">Close</button>
       </div>
     </template>
   </Dialog>

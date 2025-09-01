@@ -140,6 +140,7 @@ async function startTournament() {
   <ConfirmDialog></ConfirmDialog>
   <div class="content m-auto">
     <div class="container-with-background">
+      <span class="pi pi-chevron-left icon-button back-button" v-on:click="router.push({name: 'My Tournaments'})"></span>
       <img src="./../../assets/images/logo.svg">
       <div class="mb-3">
         <h1 class="form-header m-0 text-center">{{ tournamentData.name }}</h1>
