@@ -286,7 +286,7 @@ function disableSubmit() {
   <Dialog v-model:visible="dialogVisible" modal header="SWAP PLAYERS" :style="{ width: '15rem' }" :closable="false">
     <form v-if="tournamentData.players">
       <div class="form-field">
-        <label for="player1" class="form-label">Player 1</label>
+        <label for="player1" class="form-label">Player currently in Slot</label>
         <span class="select-icon pi pi-angle-down"></span>
         <select v-model="player1" id="faction" name="player1" class="form-control disabled">
           <option v-for="player of tournamentData.players.filter((p) => p.id === player1)" :value="player.id">
@@ -295,7 +295,7 @@ function disableSubmit() {
         </select>
       </div>
       <div class="form-field">
-        <label for="player2" class="form-label">Player 2</label>
+        <label for="player2" class="form-label">Player to swap with</label>
         <span class="select-icon pi pi-angle-down"></span>
         <select v-model="player2" id="faction" name="player2" class="form-control">
           <option

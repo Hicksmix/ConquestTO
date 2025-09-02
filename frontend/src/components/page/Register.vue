@@ -77,6 +77,19 @@ function checkUsernameValidity(e) {
 }
 
 /**
+ * Überprüft die Gültigkeit der PBW Pin.
+ * Setzt Fehlermeldung auf das Eingabefeld, falls eine Bedingung nicht erfüllt ist.
+ * @param e
+ */
+function checkPBWPinValidity(e) {
+  if (pbwPin.value && pbwPin.value.length !== 5) {
+    e.target.setCustomValidity("The Pin must be exactly 5 characters long or empty");
+  } else {
+    e.target.setCustomValidity("")
+  }
+}
+
+/**
  * Überprüft die Gültigkeit des Passworts.
  * Setzt Fehlermeldung auf das Eingabefeld, falls eine Bedingung nicht erfüllt ist.
  * Ruft checkRepeatPasswordValidity auf.
@@ -124,7 +137,7 @@ function checkRepeatPasswordValidity(e) {
       </div>
       <div class="form-field">
         <label for="pbwPin" class="form-label">PBW Pin</label>
-        <input v-model.trim="pbwPin" id="pbwPin" type="text" class="form-control">
+        <input v-model.trim="pbwPin" id="pbwPin" type="text" class="form-control" @input="checkPBWPinValidity">
       </div>
       <div class="form-field">
         <label for="password" class="form-label">Password*</label>

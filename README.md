@@ -2,7 +2,7 @@
 
 ## Getting started
 
-- Run `docker-compose up -d` in the root directory of this repository
+- Run `docker compose pull` and then `docker compose up -d` in the root directory of this repository
 - Wait for the containers to start (may take a few minutes on first start)
 - Import init-db.sql via PhpMyAdmin
 
