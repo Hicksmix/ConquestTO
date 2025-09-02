@@ -191,7 +191,7 @@ function checkPasswordFormValid() {
   <div class="content m-auto">
     <div class="container-with-background">
     <span class="pi pi-chevron-left icon-button back-button" v-on:click="router.back()"></span>
-      <img src="./../../assets/images/logo.svg">
+      <img src="./../../assets/images/logo.svg" @submit.prevent="editProfile">
       <form class="my-3">
         <h1 class="form-header text-center">Profile</h1>
         <div class="form-field">
@@ -215,11 +215,10 @@ function checkPasswordFormValid() {
         </div>
 
         <div class="button-container mt-4">
-          <button type="submit" v-if="!editModeOn" v-on:click="editModeOn = true"
+          <button type="button" v-if="!editModeOn" v-on:click="editModeOn = true"
                   :class="{ ['button-loading']: isLoading }">Edit Profile
           </button>
-          <button type="button" v-else
-                  v-on:click="editProfile()"
+          <button type="submit" v-else
                   :class="{ 'button-loading': isLoading, 'disabled': !checkFormValid() }">Save
           </button>
           <button type="button" v-if="editModeOn" class="secondary"
