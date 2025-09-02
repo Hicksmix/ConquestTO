@@ -246,7 +246,7 @@ function disableSubmit() {
               <button v-on:click="openSwapDialog(game.player1Id, game)" class="icon-button">
                 <span class="pi pi-arrow-right-arrow-left fs-4"></span>
               </button>
-              <button v-on:click="openSwapDialog(game.player2Id, game)" class="icon-button mt-3">
+              <button v-if="game.player2Id" v-on:click="openSwapDialog(game.player2Id, game)" class="icon-button mt-3">
                 <span class="pi pi-arrow-right-arrow-left fs-4"></span>
               </button>
             </div>
