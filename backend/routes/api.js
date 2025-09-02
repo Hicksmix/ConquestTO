@@ -68,7 +68,7 @@ router.get('/games/get-tournament-round', verifyJWT, async function (req, res) {
     await loadRoundForTournament(req.query.tournamentId, req.query.roundNr, res)
 });
 router.put('/games/end', verifyJWT, async function(req, res){
-    await endGame(req.body.gameId, verify(req.query.jwt, process.env.JWT_SECRET).userid, req.body.tournamentId, res)
+    await endGame(req.body.game, verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
 });
 router.put('/games/reopen', verifyJWT, async function(req, res){
     await reopenGame(req.body.gameId, verify(req.query.jwt, process.env.JWT_SECRET).userid, req.body.tournamentId, res)

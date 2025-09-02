@@ -124,9 +124,9 @@ export const useTournamentStore = defineStore('tournament', {
             }
         },
         // Beendet ein Spiel
-        async endGame(gameId) {
+        async endGame(game) {
             try {
-                const response = await axios.put('/games/end', {gameId, tournamentId: this.currentTournament.id});
+                const response = await axios.put('/games/end', {game});
                 if (response.data) {
                     this.currentTournament = response.data.tournament;
                     return response.data.tournament;

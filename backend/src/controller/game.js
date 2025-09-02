@@ -1,7 +1,6 @@
 const {
     getGamesForTournamentRound,
     getGameWithPlayerNames,
-    setGameEnded,
     updateGame,
     getGame
 } = require("../database/game");
@@ -30,31 +29,30 @@ async function loadRoundForTournament(tournamentId, roundNr, res) {
  * Beendet ein Spiel und liefert die aktualisierten Turnierdaten zurück
  * @param gameId
  * @param userId
- * @param tournamentId
  * @param res
  * @returns {Promise<*>}
  */
-async function endGame(gameId, userId, tournamentId, res) {
+async function endGame(game, userId, res) {
     const title = "Error ending game";
 
-    if (!(gameId + ''.length > 0) || !(userId?.length > 0)) {
+    if (!game || !(userId?.length > 0)) {
         res.status(400);
         return res.json({title, text: "Incomplete data"});
     }
+    const gameClone = await getGameWithPlayerNames(game.id);
+    let tournament = await getTournament(game.tournamentId);
 
-    const game = await getGameWithPlayerNames(gameId);
-    let tournament = await getTournament(tournamentId);
-
-    if (tournament?.orgaId !== userId && game.player1Id !== userId && game.player2Id !== userId) {
+    if (tournament?.orgaId !== userId && gameClone.player1Id !== userId && gameClone.player2Id !== userId) {
         res.status(403);
         return res.json({title, text: "Only the organizer or participants can end a game"});
     }
 
-    if (await setGameEnded(gameId, true)) {
+    game.ended = true;
+    if (await updateGame(game)) {
         if (tournament) {
-            tournament.games = await getGamesForTournamentRound(tournamentId, game.roundNr);
+            tournament.games = await getGamesForTournamentRound(tournament.id, game.roundNr);
 
-            tournament.players = await getPlayerOverView(tournamentId);
+            tournament.players = await getPlayerOverView(tournament.id);
             tournament.canEndRound = await checkCanEndRound(tournament);
             return res.json({tournament});
         }
@@ -93,7 +91,8 @@ async function reopenGame(gameId, userId, tournamentId, res) {
         return res.json({title, text: "Only the organizer or participants can reopen a game"});
     }
 
-    if (await setGameEnded(gameId, false)) {
+    game.ended = false;
+    if (await updateGame(game)) {
         if (tournament) {
             tournament.games = await getGamesForTournamentRound(tournamentId, game.roundNr);
 

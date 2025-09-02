@@ -24,23 +24,6 @@ async function getGamesForTournamentRound(tournamentId, roundNr) {
     }
 }
 
-async function setGameEnded(gameId, ended) {
-    let conn;
-    try {
-        conn = await getConnection();
-        let row;
-        if (conn) {
-            row = await conn.query('update `game` set ended = ? where id = ?', [ended, gameId]);
-            return row.affectedRows === 1;
-        }
-    } catch (e) {
-        console.log(e);
-        return false;
-    } finally {
-        if (conn) await conn.end();
-    }
-}
-
 async function getGameWithPlayerNames(gameId) {
     let result = null;
     let conn;
@@ -148,7 +131,6 @@ module.exports = {
     getGamesForTournamentRound,
     getGameWithPlayerNames,
     getGame,
-    setGameEnded,
     updateGame,
     createGames,
     getMatchupsToAvoidForTournamentUser
