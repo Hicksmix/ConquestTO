@@ -37,7 +37,8 @@ async function endGame(game) {
   if (game.score1 > game.score2 || !game.player2Id) game.winnerId = game.player1Id;
   else if (game.score2 > game.score1) game.winnerId = game.player2Id;
   else game.winnerId = null;
-  await tournamentStore.endGame(game);
+  await tournamentStore.updateGame(game);
+  await tournamentStore.endGame(game.id);
 }
 
 /**

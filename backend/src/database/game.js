@@ -24,6 +24,23 @@ async function getGamesForTournamentRound(tournamentId, roundNr) {
     }
 }
 
+async function setGameEnded(gameId, ended) {
+    let conn;
+    try {
+        conn = await getConnection();
+        let row;
+        if (conn) {
+            row = await conn.query('update `game` set ended = ? where id = ?', [ended, gameId]);
+            return row.affectedRows === 1;
+        }
+    } catch (e) {
+        console.log(e);
+        return false;
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
 async function getGameWithPlayerNames(gameId) {
     let result = null;
     let conn;
@@ -66,7 +83,7 @@ async function updateGame(game) {
         conn = await getConnection();
         let row;
         if (conn) {
-            row = await conn.query('update `game` set table_nr=?, round_nr=?, scenario=?, player1=?, player2=?, winner_id=?, ended=?, score1=?, score2=? where id=?', [game.tableNr, game.roundNr, game.scenario, game.player1Id, game.player2Id, game.winnerId, game.ended, game.score1, game.score2, game.id]);
+            row = await conn.query('update `game` set table_nr=?, round_nr=?, scenario=?, player1=?, player2=?, winner_id=?, score1=?, score2=? where id=?', [game.tableNr, game.roundNr, game.scenario, game.player1Id, game.player2Id, game.winnerId, game.score1, game.score2, game.id]);
             return row.affectedRows === 1;
         }
     } catch (e) {
@@ -131,6 +148,7 @@ module.exports = {
     getGamesForTournamentRound,
     getGameWithPlayerNames,
     getGame,
+    setGameEnded,
     updateGame,
     createGames,
     getMatchupsToAvoidForTournamentUser
