@@ -166,7 +166,7 @@ async function startTournament() {
             <option value="old_dominion">Old Dominion</option>
             <option value="city_states">City States</option>
             <option value="sorcerer_kings">Sorcerer Kings</option>
-            <option value="Yoroni">Yoroni</option>
+            <option value="yoroni">Yoroni</option>
           </select>
         </div>
         <div class="form-field">
