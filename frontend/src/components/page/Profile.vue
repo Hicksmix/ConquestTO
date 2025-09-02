@@ -146,7 +146,7 @@ function checkPasswordValidity(e) {
   if (newPassword.value.length < 8 || newPassword.value.length > 30) {
     e.target.setCustomValidity("The password must contain between 8 and 30 characters");
   } else if (!regex.test(newPassword.value)) {
-    e.target.setCustomValidity("The password must contain at least one lower case and one upper case letter, as well a a number and a special character");
+    e.target.setCustomValidity("The password must contain at least one lower case and one upper case letter, as well as a number and a special character");
   } else {
     e.target.setCustomValidity("")
   }
