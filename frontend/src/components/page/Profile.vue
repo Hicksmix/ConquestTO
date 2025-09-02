@@ -191,8 +191,8 @@ function checkPasswordFormValid() {
   <div class="content m-auto">
     <div class="container-with-background">
     <span class="pi pi-chevron-left icon-button back-button" v-on:click="router.back()"></span>
-      <img src="./../../assets/images/logo.svg" @submit.prevent="editProfile">
-      <form class="my-3">
+      <img src="./../../assets/images/logo.svg">
+      <form class="my-3" @submit.prevent="editProfile">
         <h1 class="form-header text-center">Profile</h1>
         <div class="form-field">
           <label for="email" class="form-label">Email address*</label>
