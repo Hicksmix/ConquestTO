@@ -2,7 +2,8 @@ const {
     createNewTournament,
     getTournament,
     getTournamentsByOrgaId,
-    getPlayerOverView, setTournamentState, setCurrentRoundState, setCurrentRound
+    getPlayerOverView, setTournamentState, setCurrentRoundState, setCurrentRound, getTournamentPageCount,
+    getTournamentPage, getTournamentsForParticipant, getJoinedTournamentPageCount
 } = require("../database/tournament")
 const {makeId} = require("../helper/makeId");
 const {getUserByMail, getUserByPin, getUser} = require("../database/user");
@@ -21,20 +22,29 @@ const {
  * @param name
  * @param date
  * @param orgaId
+ * @param endDate
+ * @param maxPlayers
+ * @param country
+ * @param city
+ * @param zip
+ * @param address
+ * @param description
+ * @param externalLink
  * @param res
  * @returns {Promise<*|null>}
  */
-async function createTournament(name, date, orgaId, res) {
+async function createTournament(name, date, orgaId, endDate, maxPlayers, country, city, zip, address, description, externalLink, res) {
     const title = "Error creating tournament";
 
-    if (!(name?.length > 0) || !(date?.length > 0) || !(orgaId?.length > 0)) {
+    if (!(name?.length > 0) || !(date?.length > 0) || !(orgaId?.length > 0) || !(maxPlayers + ''.length > 0)
+        || !(country?.length > 0) || !(city?.length > 0) || !(zip + ''.length > 0) || !(address?.length > 0)) {
         res.status(400);
         return res.json({title, text: "Incomplete data"});
     }
 
     const id = makeId(64)
 
-    if (await createNewTournament(id, name, date, orgaId)) {
+    if (await createNewTournament(id, name, date, orgaId, endDate, maxPlayers, country, city, zip, address, description, externalLink)) {
         return res.json({result: id});
     }
     res.status(500);
@@ -60,6 +70,75 @@ async function loadTournamentsForOrga(orgaId, res) {
     // Ergebnisse zurückgeben.
     if (tournaments) {
         return res.json({tournaments});
+    }
+
+    // Fehler beim Abrufen der Daten.
+    res.status(500);
+    return res.json({title, text: "Something went wrong. Please try again later"});
+}
+
+/**
+ * Lädt eine Turnierübersicht an Turnieren, denen der User beigetreten ist
+ * @param userId
+ * @param pageNr
+ * @param res
+ * @returns {Promise<*>}
+ */
+async function loadTournamentsForParticipant(userId, pageNr, res) {
+    const title = "Error loading tournaments";
+
+    if (!(userId?.length > 0) || !(pageNr?.length > 0)) {
+        res.status(400);
+        return res.json({title, text: "Incomplete data"});
+    }
+
+
+    const pageCount = await getJoinedTournamentPageCount(userId);
+
+    if (pageNr > pageCount) {
+        res.status(400);
+        return res.json({title, text: "Page Number exceeds limit"});
+    }
+
+    const tournaments = await getTournamentsForParticipant(userId, pageNr);
+
+    // Ergebnisse zurückgeben.
+    if (tournaments) {
+        return res.json({tournaments, pageCount});
+    }
+
+    // Fehler beim Abrufen der Daten.
+    res.status(500);
+    return res.json({title, text: "Something went wrong. Please try again later"});
+}
+
+/**
+ * Returns the 10 tournaments for a given page number
+ * @param pageNr
+ * @param filters
+ * @param res
+ * @returns {Promise<*>}
+ */
+async function loadTournamentPage(pageNr, filters, res) {
+    const title = "Error loading tournaments";
+
+    if (!(pageNr?.length > 0)) {
+        res.status(400);
+        return res.json({title, text: "Incomplete data"});
+    }
+
+    const pageCount = await getTournamentPageCount(filters);
+
+    if (pageNr > pageCount) {
+        res.status(400);
+        return res.json({title, text: "Page Number exceeds limit"});
+    }
+
+    const tournaments = await getTournamentPage(pageNr, filters);
+
+    // Ergebnisse zurückgeben.
+    if (tournaments) {
+        return res.json({tournaments, pageCount});
     }
 
     // Fehler beim Abrufen der Daten.
@@ -96,13 +175,14 @@ async function loadTournament(tournamentId, res) {
 /**
  * Fügt einen Spieler anhand seiner pbwPin oder Mail zu einem Turnier hinzu und liefert die neuen Turnierdaten zurück
  * @param pinOrMail
+ * @param orgaId
  * @param tournamentId
  * @param faction
  * @param teamName
  * @param res
  * @returns {Promise<*>}
  */
-async function addPlayerToTournament(pinOrMail, tournamentId, faction, teamName, res) {
+async function addPlayerToTournament(pinOrMail, orgaId, tournamentId, faction, teamName, res) {
     const title = "Error adding player to tournament";
 
     if (!(tournamentId?.length > 0) || !(pinOrMail?.length > 0) || !(faction?.length > 0)) {
@@ -111,17 +191,86 @@ async function addPlayerToTournament(pinOrMail, tournamentId, faction, teamName,
     }
 
     const tournament = await getTournament(tournamentId);
+
+    if (tournament.state !== 'created') {
+        res.status(409);
+        return res.json({title, text: "Players cannot be added to the tournament once it's started."});
+    }
+
+    if (tournament.orgaId !== orgaId) {
+        res.status(403);
+        return res.json({title, text: "Only the orga can add players."});
+    }
+
     let user = await getUserByPin(pinOrMail);
     if (!user) user = await getUserByMail(pinOrMail); // Falls der User nicht per pbwPin gefunden werden konnte
 
     // Überprüft, ob das Turnier und der User gefunden wurden und noch Spieler zum Turnier hinzugefügt werden können
-    if (tournament && user && tournament.state === 'created') {
+    if (tournament && user) {
         tournament.players = await getPlayerOverView(tournamentId);
+
+        if (tournament.maxPlayers <= tournament.players.length) {
+            res.status(409);
+            return res.json({title, text: "The tournament is already full."});
+        }
 
         // Überprüft, ob der User bereits dem Turnier hinzugefügt wurde
         if (tournament.players.filter(player => player.id === user.id).length > 0) {
             res.status(409);
             return res.json({title, text: "Player already added to tournament"});
+        }
+
+        const result = await createTournamentUser(user.id, tournamentId, faction, teamName);
+
+        if (result) {
+            tournament.players = await getPlayerOverView(tournamentId);
+            return res.json({tournament});
+        }
+    }
+
+    res.status(500);
+    return res.json({title, text: "Something went wrong. Please try again later"});
+}
+
+/**
+ * Allows the user to join a tournament
+ * @param userId
+ * @param tournamentId
+ * @param faction
+ * @param teamName
+ * @param res
+ * @returns {Promise<*>}
+ */
+async function joinTournament(userId, tournamentId, faction, teamName, res) {
+    const title = "Error joining tournament";
+
+    if (!(tournamentId?.length > 0) || !(userId?.length > 0) || !(faction?.length > 0)) {
+        res.status(400);
+        return res.json({title, text: "Incomplete data"});
+    }
+
+    const tournament = await getTournament(tournamentId);
+
+    if (tournament.state !== 'created') {
+        res.status(409);
+        return res.json({title, text: "Players cannot join the tournament once it's started."});
+    }
+
+    let user = await getUser(userId);
+
+    // Überprüft, ob das Turnier und der User gefunden wurden und noch Spieler zum Turnier hinzugefügt werden können
+    if (tournament && user && tournament.state === 'created') {
+        tournament.players = await getPlayerOverView(tournamentId);
+
+        if (tournament.maxPlayers <= tournament.players.length) {
+            res.status(409);
+            return res.json({title, text: "The tournament is already full."});
+        }
+
+        // Überprüft, ob der User bereits dem Turnier hinzugefügt wurde
+        if (tournament.players.filter(player => player.id === user.id).length > 0) {
+            res.status(409);
+            return res.json({title, text: "Player already joined tournament"});
         }
 
         const result = await createTournamentUser(user.id, tournamentId, faction, teamName);
@@ -443,10 +592,13 @@ async function createMatchups(tournament) {
 }
 
 module.exports = {
+    loadTournamentPage,
     loadTournament,
     createTournament,
     loadTournamentsForOrga,
+    loadTournamentsForParticipant,
     addPlayerToTournament,
+    joinTournament,
     removePlayerFromTournament,
     startTournament,
     endTournamentRound,

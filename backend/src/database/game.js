@@ -131,6 +131,40 @@ async function getMatchupsToAvoidForTournamentUser(userId, tournamentId) {
     }
 }
 
+async function getGameCountForFactionAndDate(faction, date) {
+    let result = 0;
+    let conn;
+    try {
+        conn = await getConnection();
+        let rows = await conn.query('SELECT COUNT(*) as gameCount FROM `game` JOIN tournament_user ON game.tournament_id = tournament_user.tournament_id AND (game.player1 = tournament_user.user_id OR game.player2 = tournament_user.user_id) WHERE tournament_user.faction = ? AND game.date >= ?;', [faction, date]);
+        if (rows.length === 1) { // Wenn 1 Ergebnis gefunden wurde
+            result = rows[0]['pageCount'];
+        }
+        return result;
+    } catch (e) {
+        console.log(e);
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
+async function getWinCountForFactionAndDate(faction, date) {
+    let result = 0;
+    let conn;
+    try {
+        conn = await getConnection();
+        let rows = await conn.query('SELECT COUNT(*) as gameCount FROM `game` JOIN tournament_user ON game.tournament_id = tournament_user.tournament_id AND game.winner_id = tournament_user.user_id WHERE tournament_user.faction = ? AND game.date >= ?;', [faction, date]);
+        if (rows.length === 1) { // Wenn 1 Ergebnis gefunden wurde
+            result = rows[0]['pageCount'];
+        }
+        return result;
+    } catch (e) {
+        console.log(e);
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
 // expand(3, 2) returns "($, $), ($, $), ($, $)"
 function expand(rowCount, columnCount, startAt = 1) {
     var index = startAt;
@@ -151,5 +185,7 @@ module.exports = {
     setGameEnded,
     updateGame,
     createGames,
-    getMatchupsToAvoidForTournamentUser
+    getMatchupsToAvoidForTournamentUser,
+    getGameCountForFactionAndDate,
+    getWinCountForFactionAndDate
 }

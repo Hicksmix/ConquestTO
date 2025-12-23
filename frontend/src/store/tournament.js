@@ -7,13 +7,25 @@ import axios from '../axios';
 export const useTournamentStore = defineStore('tournament', {
     state: () => ({
         tournaments: [],
-        currentTournament: {}
+        currentTournament: {},
+        pageCount: 0,
     }),
     actions: {
         // Erstellt ein neues Turnier
-        async createTournament(name, date) {
+        async createTournament(name, date, endDate, maxPlayers, country, city, zip, address, description, externalLink) {
             try {
-                const response = await axios.put('/tournament/create', {name, date});
+                const response = await axios.put('/tournament/create', {
+                    name,
+                    date,
+                    endDate,
+                    maxPlayers,
+                    country,
+                    city,
+                    zip,
+                    address,
+                    description,
+                    externalLink
+                });
                 if (response.data.result) {
                     return response.data.result;
                 }
@@ -29,6 +41,34 @@ export const useTournamentStore = defineStore('tournament', {
                 if (response.data.tournaments) {
                     this.tournaments = response.data.tournaments
                     return response.data.tournaments;
+                }
+            } catch (error) {
+                console.error('Loading tournaments failed:', error);
+                throw error;
+            }
+        },
+        // Lädt die Turniere, die man selbst organisiert hat
+        async getTournamentsForParticipant(pageNr) {
+            try {
+                const response = await axios.get('tournament/get-for-participant', {params: {pageNr}});
+                if (response.data.tournaments) {
+                    this.tournaments = response.data.tournaments;
+                    this.pageCount = parseInt(response.data.pageCount);
+                    return response.data;
+                }
+            } catch (error) {
+                console.error('Loading tournaments failed:', error);
+                throw error;
+            }
+        },
+        // Lädt die eine TurnierSeite
+        async getTournamentPage(pageNr, filters = {}) {
+            try {
+                const response = await axios.get('tournament/get-page', {params: {pageNr, filters}});
+                if (response.data.tournaments) {
+                    this.tournaments = response.data.tournaments;
+                    this.pageCount = parseInt(response.data.pageCount);
+                    return response.data;
                 }
             } catch (error) {
                 console.error('Loading tournaments failed:', error);
@@ -63,6 +103,23 @@ export const useTournamentStore = defineStore('tournament', {
                 }
             } catch (error) {
                 console.error('Adding player failed:', error);
+                throw error;
+            }
+        },
+        // Fügt den aktuellen User zu einem Turnier hinzu
+        async joinTournament(tournamentId, faction, teamName) {
+            try {
+                const response = await axios.post('tournament/join', {
+                    tournamentId,
+                    faction,
+                    teamName
+                });
+                if (response.data.tournament) {
+                    this.currentTournament = response.data.tournament
+                    return response.data.tournament;
+                }
+            } catch (error) {
+                console.error('Joining tournament failed:', error);
                 throw error;
             }
         },

@@ -3,6 +3,7 @@ import {computed, onMounted} from 'vue';
 import {useAuthStore} from '@/store/auth';
 import {useTournamentStore} from '@/store/tournament';
 import router from './../../router';
+import TournamentCards from "@/components/common/TournamentCards.vue";
 
 const authStore = useAuthStore();
 const tournamentStore = useTournamentStore();
@@ -22,7 +23,7 @@ onMounted(async () => {
  * Öffnen eines Turniers. Je nach Status des Turniers in der Übersicht oder in der Add Players Ansicht
  */
 async function openTournament(tournament) {
-  if(tournament.state === 'created') {
+  if (tournament.state === 'created') {
     await router.push({name: 'Add Players', params: {id: tournament.id}});
   } else {
     await router.push({name: 'Tournament', params: {id: tournament.id}})
@@ -36,18 +37,7 @@ async function openTournament(tournament) {
       <span class="pi pi-chevron-left icon-button back-button" v-on:click="router.push({name: 'Landing Page'})"></span>
       <img src="./../../assets/images/logo.svg">
       <h1 class="form-header mb-3 text-center">MY TOURNAMENTS</h1>
-        <ul class="tournament-cards card-list w-100">
-          <li class="card" v-for="tournament of orgaTournaments" v-on:click="openTournament(tournament)">
-            <div class="card-text-container">
-              <span class="card-title">{{ tournament.name }}</span>
-              <div class="d-flex">
-                <span>{{ new Date(tournament.date).toLocaleString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) }}</span>
-                <span class="ms-auto me-1">{{ tournament.state }}</span>
-              </div>
-            </div>
-            <span class="pi pi-arrow-right dark card-icon"></span>
-          </li>
-        </ul>
+      <TournamentCards :tournaments="orgaTournaments" @openTournament="openTournament"></TournamentCards>
       <div class="button-container">
         <button v-on:click="router.push({ name: 'Create Tournament' })">Create</button>
         <button :disabled class="disabled">Join</button>
@@ -65,10 +55,10 @@ async function openTournament(tournament) {
   .container-with-background {
     height: 100%;
 
-      .tournament-cards {
-        overflow: auto;
-        height: 100%;
-      }
+    .tournament-cards {
+      overflow: auto;
+      height: 100%;
+    }
 
     .button-container {
       margin: 0.5rem 1.5rem 0 1.5rem;

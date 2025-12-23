@@ -9,7 +9,8 @@ const {verifyJWT} = require("../src/middleware/verifyJWT");
 const {login, register, loadUser, editUser, editUserPassword} = require("../src/controller/user")
 const {
     loadTournamentsForOrga, createTournament, loadTournament, addPlayerToTournament, removePlayerFromTournament,
-    startTournament, endTournamentRound, createNewRound, endTournament, startRound
+    startTournament, endTournamentRound, createNewRound, endTournament, startRound, loadTournamentPage, joinTournament,
+    loadTournamentsForParticipant
 } = require("../src/controller/tournament")
 const {loadRoundForTournament, endGame, reopenGame, updateGameScore, swapPlayers} = require("../src/controller/game");
 let router = express.Router();
@@ -33,16 +34,25 @@ router.post('/user/edit-password', verifyJWT, async function (req, res) {
 
 // Tournament
 router.put('/tournament/create', verifyJWT, async function (req, res) {
-    await createTournament(req.body.name, req.body.date, verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
+    await createTournament(req.body.name, req.body.date, verify(req.query.jwt, process.env.JWT_SECRET).userid, req.body.endDate, req.body.maxPlayers, req.body.country, req.body.city, req.body.zip, req.body.address, req.body.description, req.body.externalLink, res)
 });
 router.get('/tournament/get-for-orga', verifyJWT, async function (req, res) {
     await loadTournamentsForOrga(verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
 });
-router.get('/tournament/get-tournament', verifyJWT, async function (req, res) {
+router.get('/tournament/get-for-participant', verifyJWT, async function (req, res) {
+    await loadTournamentsForParticipant(verify(req.query.jwt, process.env.JWT_SECRET).userid, req.query.pageNr, res)
+});
+router.get('/tournament/get-page', async function (req, res) {
+    await loadTournamentPage(req.query.pageNr, req.query.filters, res)
+});
+router.get('/tournament/get-tournament', async function (req, res) {
     await loadTournament(req.query.tournamentId, res)
 });
 router.post('/tournament/add-player', verifyJWT, async function (req, res) {
-    await addPlayerToTournament(req.body.pinOrMail, req.body.tournamentId, req.body.faction, req.body.teamName, res)
+    await addPlayerToTournament(req.body.pinOrMail, verify(req.query.jwt, process.env.JWT_SECRET).userid, req.body.tournamentId, req.body.faction, req.body.teamName, res)
+});
+router.post('/tournament/join', verifyJWT, async function (req, res) {
+    await joinTournament(verify(req.query.jwt, process.env.JWT_SECRET).userid, req.body.tournamentId, req.body.faction, req.body.teamName, res)
 });
 router.delete('/tournament/remove-player', verifyJWT, async function (req, res) {
     await removePlayerFromTournament(req.body.userId, req.body.tournamentId, res)
@@ -53,13 +63,13 @@ router.post('/tournament/start', verifyJWT, async function (req, res) {
 router.post('/tournament/end', verifyJWT, async function (req, res) {
     await endTournament(req.body.tournamentId, verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
 });
-router.post('/tournament/end-round', verifyJWT, async function(req, res) {
+router.post('/tournament/end-round', verifyJWT, async function (req, res) {
     await endTournamentRound(req.body.tournamentId, verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
 });
-router.post('/tournament/create-round', verifyJWT, async function(req, res) {
+router.post('/tournament/create-round', verifyJWT, async function (req, res) {
     await createNewRound(req.body.tournamentId, verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
 });
-router.post('/tournament/start-round', verifyJWT, async function(req, res) {
+router.post('/tournament/start-round', verifyJWT, async function (req, res) {
     await startRound(req.body.tournamentId, verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
 });
 
@@ -67,17 +77,17 @@ router.post('/tournament/start-round', verifyJWT, async function(req, res) {
 router.get('/games/get-tournament-round', verifyJWT, async function (req, res) {
     await loadRoundForTournament(req.query.tournamentId, req.query.roundNr, res)
 });
-router.put('/games/end', verifyJWT, async function(req, res){
+router.put('/games/end', verifyJWT, async function (req, res) {
     await endGame(req.body.gameId, verify(req.query.jwt, process.env.JWT_SECRET).userid, req.body.tournamentId, res)
 });
-router.put('/games/reopen', verifyJWT, async function(req, res){
+router.put('/games/reopen', verifyJWT, async function (req, res) {
     await reopenGame(req.body.gameId, verify(req.query.jwt, process.env.JWT_SECRET).userid, req.body.tournamentId, res)
 });
-router.put('/games/update-score', verifyJWT, async function(req, res){
-   await updateGameScore(req.body.game, verify(req.query.jwt, process.env.JWT_SECRET).userid, req.body.tournamentId, res)
+router.put('/games/update-score', verifyJWT, async function (req, res) {
+    await updateGameScore(req.body.game, verify(req.query.jwt, process.env.JWT_SECRET).userid, req.body.tournamentId, res)
 });
-router.put('/games/swap-players', verifyJWT, async function(req, res){
-   await swapPlayers(req.body.game1Id, req.body.game2Id, req.body.userIdToSwapFromGame1, req.body.userIdToSwapFromGame2, verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
+router.put('/games/swap-players', verifyJWT, async function (req, res) {
+    await swapPlayers(req.body.game1Id, req.body.game2Id, req.body.userIdToSwapFromGame1, req.body.userIdToSwapFromGame2, verify(req.query.jwt, process.env.JWT_SECRET).userid, res)
 });
 
 module.exports = router;

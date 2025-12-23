@@ -21,10 +21,14 @@ const dialogVisible = ref(false);
 const player1 = ref();
 const player2 = ref();
 const gameForSwap = ref();
+const currentUser = computed(() => authStore.currentUser);
+const isOrga = computed(() => authStore.currentUser.id === tournamentData.value.orgaId);
 
 onMounted(async () => {
   // Authentifizierung überprüfen
   if (!isAuthenticated.value) await router.push({name: 'Login'});
+
+  if(route.params.round) roundNr.value = parseInt(route.params.round);
 
   await tournamentStore.getTournament(tournamentId);
   await tournamentStore.loadTournamentRound(roundNr.value);
@@ -155,6 +159,7 @@ async function swapPlayers() {
  */
 async function selectRound(round) {
   roundNr.value = round;
+  await router.replace({name: 'Tournament Round', params: {id: tournamentId, round}});
   await tournamentStore.loadTournamentRound(roundNr.value);
 }
 
@@ -185,6 +190,15 @@ async function endTournament() {
 function disableSubmit() {
   return !player2.value;
 }
+
+/**
+ * Kontrolliert, ob der aktuelle User die Scorings eines Spiels editieren kann
+ * @param game
+ * @returns {boolean}
+ */
+function canEditScore(game) {
+  return tournamentData.value.currentRoundState === 'ongoing' && (isOrga.value || game.player1Id === currentUser.value.id || game.player2Id === currentUser.value.id)
+}
 </script>
 
 <template>
@@ -195,15 +209,9 @@ function disableSubmit() {
       <img src="./../../assets/images/logo.svg">
       <div class="mb-3">
         <h1 class="form-header m-0 text-center">{{ tournamentData.name }}</h1>
-        <span class="sub-header text-center">{{
-            new Date(tournamentData.date).toLocaleString('en-US', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric'
-            })
-          }} | {{ tournamentData.state }}</span>
+        <span class="sub-header text-center">{{ tournamentData.state }}</span>
       </div>
-      <span class="sub-header">Matches</span>
+      <span class="sub-header">Matches ({{parseInt(tournamentData.currentRound) === roundNr ? tournamentData.currentRoundState : 'ended'}})</span>
       <ul class="card-list w-100">
         <li class="card-container" v-for="game of tournamentData.games ? tournamentData.games : []">
           <div class="card">
@@ -215,7 +223,7 @@ function disableSubmit() {
                 <span class="pi pi-crown winner-crown dark ms-1"
                       v-if="game.winnerId === game.player1Id && game.ended"></span>
                 <span class="ms-auto card-title"
-                      v-if="game.ended || tournamentData.currentRoundState !== 'ongoing'">{{ game.score1 }}</span>
+                      v-if="game.ended || tournamentData.currentRoundState !== 'ongoing' || !canEditScore(game)">{{ game.score1 }}</span>
                 <input class="ms-auto minimal-input" type="number" v-else v-model="game.score1"
                        v-on:blur="saveGame(game)">
               </div>
@@ -226,7 +234,7 @@ function disableSubmit() {
                 <span class="pi pi-crown winner-crown dark ms-1"
                       v-if="game.winnerId === game.player2Id && game.ended"></span>
                 <span class="ms-auto card-title"
-                      v-if="game.ended || tournamentData.currentRoundState !== 'ongoing' || !game.player2Id">{{ game.score2 }}</span>
+                      v-if="game.ended || tournamentData.currentRoundState !== 'ongoing' || !game.player2Id || !canEditScore(game)">{{ game.score2 }}</span>
                 <input class="ms-auto minimal-input" type="number" v-else v-model="game.score2"
                        v-on:blur="saveGame(game)">
               </div>
@@ -234,7 +242,7 @@ function disableSubmit() {
           </div>
           <div
               v-if="!tournamentData.ended && tournamentData.currentRound === roundNr && tournamentData.currentRoundState !== 'ended'">
-            <div v-if="tournamentData.currentRoundState === 'ongoing'">
+            <div v-if="canEditScore(game)">
               <button class="icon-button" v-if="!game.ended" v-on:click="endGame(game)">
                 <span class="pi pi-check-circle fs-4"></span>
               </button>
@@ -242,7 +250,7 @@ function disableSubmit() {
                 <span class="pi pi-pen-to-square fs-4"></span>
               </button>
             </div>
-            <div v-else>
+            <div v-else-if="isOrga">
               <button v-on:click="openSwapDialog(game.player1Id, game)" class="icon-button">
                 <span class="pi pi-arrow-right-arrow-left fs-4"></span>
               </button>
@@ -258,7 +266,7 @@ function disableSubmit() {
               :disabled="roundNr <= 1"></span>
         <span v-for="index in tournamentData.currentRound" :class="[{'active': index === roundNr}]"
               v-on:click="selectRound(index)">{{ index }}</span>
-        <span v-if="tournamentData.currentRoundState === 'ended' && tournamentData.state === 'ongoing'"
+        <span v-if="tournamentData.currentRoundState === 'ended' && tournamentData.state === 'ongoing' && isOrga"
               class="new-round"
               v-on:click="createNewRound()">{{
             tournamentData.currentRound + 1
@@ -270,13 +278,13 @@ function disableSubmit() {
       <div class="button-container">
         <button v-on:click="router.push({name: 'Tournament', params: {id: tournamentId}})">Overview
         </button>
-        <button v-if="tournamentData.currentRoundState === 'ongoing'"
+        <button v-if="tournamentData.currentRoundState === 'ongoing' && isOrga"
                 :class="[{'disabled': !tournamentData.canEndRound}]"
                 :disabled="!tournamentData.canEndRound" v-on:click="endRound()">End Round
         </button>
-        <button v-else-if="tournamentData.currentRoundState === 'created'" v-on:click="startRound()">Start Round
+        <button v-else-if="tournamentData.currentRoundState === 'created' && isOrga" v-on:click="startRound()">Start Round
         </button>
-        <button v-else-if="tournamentData.state === 'ongoing' && tournamentData.currentRoundState === 'ended'"
+        <button v-else-if="tournamentData.state === 'ongoing' && tournamentData.currentRoundState === 'ended' && isOrga"
                 v-on:click="endTournament()">End Tourney
         </button>
       </div>

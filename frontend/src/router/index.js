@@ -7,9 +7,11 @@ const routes = [
     { path: '/profile', name: 'Profile', component: () => import('../components/page/Profile.vue'), meta: { title: ' - Profile' } },
     { path: '/tournament/create', name: 'Create Tournament', component: () => import('../components/page/CreateTournament.vue'), meta: { title: ' - Create Tournament' } },
     { path: '/tournament/my-tournaments', name: 'My Tournaments', component: () => import('../components/page/MyTournaments.vue'), meta: { title: ' - My Tournaments' } },
+    { path: '/tournament/joined-tournaments', name: 'Joined Tournaments', component: () => import('../components/page/JoinedTournaments.vue'), meta: { title: ' - Joined Tournaments' } },
+    { path: '/tournament/tournament-list', name: 'Tournaments', component: () => import('../components/page/TournamentList.vue'), meta: { title: ' - Tournaments' } },
     { path: '/tournament/:id', name: 'Tournament', component: () => import('../components/page/Tournament.vue'), meta: { title: ' - Tournament' } },
     { path: '/tournament/add-players/:id', name: 'Add Players', component: () => import('../components/page/AddPlayers.vue'), meta: { title: ' - Add Players' } },
-    { path: '/tournament/tournament-round/:id', name: 'Tournament Round', component: () => import('../components/page/TournamentRound.vue'), meta: { title: ' - Round' } },
+    { path: '/tournament/tournament-round/:id/:round?', name: 'Tournament Round', component: () => import('../components/page/TournamentRound.vue'), meta: { title: ' - Round' } },
 ]
 
 const router = createRouter({

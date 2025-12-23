@@ -13,6 +13,7 @@ const route = useRoute();
 const authStore = useAuthStore();
 const tournamentStore = useTournamentStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated);
+const currentUser = computed(() => authStore.currentUser);
 const tournamentData = computed(() => tournamentStore.currentTournament);
 const glob = import.meta.glob('@/assets/images/faction-icons/*.png', {eager: true});
 const factionIcons = Object.fromEntries(
@@ -22,7 +23,7 @@ const tournamentId = route.params.id
 const pinOrMail = ref('');
 const faction = ref('');
 const team = ref('');
-const isLoading = ref(false)
+const isLoading = ref(false);
 
 onMounted(async () => {
   // Authentifizierung überprüfen, sonst Weiterleitung zum Login
@@ -30,6 +31,8 @@ onMounted(async () => {
 
   // Laden der Daten, des geöffneten Turniers
   await tournamentStore.getTournament(tournamentId);
+  if (tournamentData.value.orgaId !== currentUser.value.id)
+    await router.push({name: 'Tournament', params: {id: tournamentId}})
 })
 
 
@@ -37,7 +40,7 @@ onMounted(async () => {
  * Kontrolliert, ob der "Add User"-Button aktiviert oder deaktiviert ist.
  */
 function disableSubmit() {
-  return !pinOrMail.value || !faction.value;
+  return !pinOrMail.value || !faction.value || tournamentData.value?.state !== 'created' || tournamentData.value?.maxPlayers <= tournamentData.value?.players?.length;
 }
 
 /**
@@ -142,12 +145,33 @@ async function startTournament() {
     <div class="container-with-background">
       <span class="pi pi-chevron-left icon-button back-button" v-on:click="router.push({name: 'My Tournaments'})"></span>
       <img src="./../../assets/images/logo.svg">
-      <div class="mb-3">
+      <div>
         <h1 class="form-header m-0 text-center">{{ tournamentData.name }}</h1>
-        <span class="sub-header text-center">{{ tournamentData.date }} | {{ tournamentData.state }}</span>
+        <span class="sub-header text-center">{{
+            new Date(tournamentData.date).toLocaleString('en-US', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric'
+            })
+          }}
+          <template v-if="tournamentData.endDate"> - {{
+              new Date(tournamentData.endDate).toLocaleString('en-US', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+              })
+            }}
+        </template>
+        </span>
+        <div class="sub-header text-center">
+          <div class="d-inline-flex gap-1 text-center align-items-center ms-1">
+            <span class="pi pi-user"></span>
+            <span>{{tournamentData.players?.length}}/{{tournamentData.maxPlayers }}</span>
+          </div>
+        </div>
         <h1 class="form-header m-0 text-center">ADD PLAYERS</h1>
       </div>
-      <form class="m-auto mb-3 w-75">
+      <form class="m-auto mb-2 w-75">
         <div class="form-field">
           <label for="pinOrMail" class="form-label">PBW Pin or Email address*</label>
           <input v-model.trim="pinOrMail" id="pinOrMail" type="text" class="form-control" @input="checkValidity">
