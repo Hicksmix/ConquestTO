@@ -100,8 +100,8 @@ function checkValidity(e) {
         </template>
         <template v-if="currentPage === 1">
           <div class="form-field">
-            <label for="country" class="form-label">Country*</label>
-            <input v-model.trim="country" id="country" type="text" class="form-control" @input="checkValidity">
+            <label for="country" class="form-label">Country Code*</label>
+            <input v-model.trim="country" id="country" type="text" class="form-control" @input="checkValidity" maxlength="2">
           </div>
           <div class="form-field">
             <label for="city" class="form-label">City*</label>

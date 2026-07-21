@@ -48,6 +48,78 @@ async function getTournament(tournamentId) {
     }
 }
 
+async function getEndedTournamentsForTimeframe(startDate, endDate) {
+    let results = [];
+    let conn;
+    try {
+        conn = await getConnection();
+        let rows = await conn.query(`select * from tournaments WHERE ((date >= ? AND date <= ? AND end_date IS NULL) OR (end_date >= ? AND end_date <= ?)) AND state = 'ended'`, [startDate, endDate, startDate, endDate]);
+        if (rows.length > 0) { // Wenn 1 Ergebnis gefunden wurde
+            rows.forEach(row => {
+                results.push(new Tournament(
+                    row['id'],
+                    row['name'],
+                    row['date'],
+                    row['end_date'],
+                    row['max_players'],
+                    row['country'],
+                    row['city'],
+                    row['zip'],
+                    row['address'],
+                    row['description'],
+                    row['external_link'],
+                    row['orga_id'],
+                    row['state'],
+                    null,
+                    row['current_round'],
+                    row['current_round_state']
+                ))
+            })
+        }
+    } catch (e) {
+        console.log(e);
+    } finally {
+        if (conn) await conn.end();
+    }
+    return results;
+}
+
+async function getAllEndedTournaments() {
+    let results = [];
+    let conn;
+    try {
+        conn = await getConnection();
+        let rows = await conn.query(`select * from tournaments WHERE state = 'ended'`);
+        if (rows.length > 0) { // Wenn 1 Ergebnis gefunden wurde
+            rows.forEach(row => {
+                results.push(new Tournament(
+                    row['id'],
+                    row['name'],
+                    row['date'],
+                    row['end_date'],
+                    row['max_players'],
+                    row['country'],
+                    row['city'],
+                    row['zip'],
+                    row['address'],
+                    row['description'],
+                    row['external_link'],
+                    row['orga_id'],
+                    row['state'],
+                    null,
+                    row['current_round'],
+                    row['current_round_state']
+                ))
+            })
+        }
+    } catch (e) {
+        console.log(e);
+    } finally {
+        if (conn) await conn.end();
+    }
+    return results;
+}
+
 async function getTournamentPageCount(filters = {}) {
     let conn;
     let result;
@@ -55,7 +127,9 @@ async function getTournamentPageCount(filters = {}) {
         conn = await getConnection();
         let filterQuery = generateFilterQuery(filters);
         let row;
-        if (filterQuery) row = await conn.query(`select CEILING(COUNT(*)/10) as pageCount from tournaments WHERE ${filterQuery}`);
+        if (filterQuery) row = await conn.query(`select CEILING(COUNT(*) / 10) as pageCount
+                                                 from tournaments
+                                                 WHERE ${filterQuery}`);
         else row = await conn.query('select CEILING(COUNT(*)/10) as pageCount from tournaments');
         if (row.length === 1) { // Wenn 1 Ergebnis gefunden wurde
             result = row[0]['pageCount'];
@@ -92,7 +166,11 @@ async function getTournamentPage(pageNr, filters = {}) {
         conn = await getConnection();
         let filterQuery = generateFilterQuery(filters);
         let rows;
-        if (filterQuery) rows = await conn.query(`select * from tournaments WHERE ${filterQuery} order by date desc limit 10 offset ?`, [(pageNr - 1) * 10]);
+        if (filterQuery) rows = await conn.query(`select *
+                                                  from tournaments
+                                                  WHERE ${filterQuery}
+                                                  order by date desc
+                                                  limit 10 offset ?`, [(pageNr - 1) * 10]);
         else rows = await conn.query('select * from tournaments order by date desc limit 10 offset ?', [(pageNr - 1) * 10]);
         if (rows.length > 0) { // Wenn mind. 1 Ergebnis gefunden wurde
             rows.forEach(row => {
@@ -135,12 +213,12 @@ async function getPlayerOverView(tournamentId) {
                 result.push(new TournamentUser(row['id'], row['username'], row['pbw_pin'], row['email'], row['faction'], Number(row['win_count']), Number(row['loss_count']), Number(row['draw_count']), Number(row['total_score']), 2 * Number(row['win_count']) + Number(row['draw_count']), (Math.round(Number(row['SoS']) * 100) / 100).toFixed(2), row['has_been_paired_up_down'] === 1, row['has_received_bye'] === 1, row['team_name']))
             })
         }
-        return result;
     } catch (e) {
         console.log(e);
     } finally {
         if (conn) await conn.end();
     }
+    return result;
 }
 
 async function getTournamentsByOrgaId(orgaId) {
@@ -318,6 +396,8 @@ module.exports = {
     getJoinedTournamentPageCount,
     getTournamentPage,
     getTournamentsForParticipant,
+    getEndedTournamentsForTimeframe,
+    getAllEndedTournaments,
     createNewTournament,
     getPlayerOverView,
     setTournamentState,

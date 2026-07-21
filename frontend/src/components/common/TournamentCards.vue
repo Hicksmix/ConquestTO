@@ -12,7 +12,7 @@ defineProps({
         <span class="card-title">{{ tournament.name }}</span>
         <div class="d-flex">
                 <span>{{
-                    new Date(tournament.date).toLocaleString('en-US', {
+                    new Date(tournament.date).toLocaleString('de-DE', {
                       day: 'numeric',
                       month: 'numeric',
                       year: 'numeric'

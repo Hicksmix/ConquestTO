@@ -24,7 +24,7 @@ const isLoading = ref(false);
 let filters = {};
 
 onMounted(async () => {
-  await tournamentStore.getTournamentPage(pageNr.value);
+  await loadFilters();
 })
 
 /**
@@ -33,7 +33,7 @@ onMounted(async () => {
  * @returns {Promise<void>}
  */
 async function selectPage(newPageNr) {
-  pageNr.value = newPageNr
+  pageNr.value = newPageNr;
   await tournamentStore.getTournamentPage(newPageNr, filters);
 }
 
@@ -65,8 +65,16 @@ async function saveFilters() {
 
   try {
     isLoading.value = true;
+    let storedFilters = JSON.parse(localStorage.getItem('cto_filters'));
+    if (!storedFilters) storedFilters = {statistics: {}, tournaments: {}};
+
     await tournamentStore.getTournamentPage(pageNr.value, filters);
+
+    storedFilters.tournaments = filters;
+    localStorage.setItem('cto_filters', JSON.stringify(storedFilters));
+
     dialogVisible.value = false;
+    isLoading.value = false;
   } catch (error) {
     isLoading.value = false;
   }
@@ -84,17 +92,53 @@ async function resetFilters() {
   city.value = null;
   maxPlayers.value = null;
   hasSlots.value = false;
+  name.value = null;
   pageNr.value = 1;
 
   try {
     isLoading.value = true;
+    let storedFilters = JSON.parse(localStorage.getItem('cto_filters'));
+    if (!storedFilters) storedFilters = {statistics: {}, tournaments: {}};
+
     await tournamentStore.getTournamentPage(pageNr.value, filters);
+
+    storedFilters.tournaments = {};
+    localStorage.setItem('cto_filters', JSON.stringify(storedFilters));
     dialogVisible.value = false;
+    isLoading.value = false;
   } catch (error) {
     isLoading.value = false;
   }
 }
 
+/**
+ * Lädt die zuvor gesetzten Filter
+ * @returns {Promise<void>}
+ */
+async function loadFilters() {
+  let storedFilters = JSON.parse(localStorage.getItem('cto_filters'));
+  if (!storedFilters) storedFilters = {statistics: {}, tournaments: {}};
+  else {
+    fromDate.value = storedFilters.tournaments.fromDate;
+    toDate.value = storedFilters.tournaments.toDate;
+    country.value = storedFilters.tournaments.country;
+    city.value = storedFilters.tournaments.city;
+    maxPlayers.value = storedFilters.tournaments.maxPlayers;
+    hasSlots.value = storedFilters.tournaments.hasSlots;
+    name.value = storedFilters.tournaments.name;
+  }
+  filters = storedFilters.tournaments;
+
+  try {
+    isLoading.value = true;
+
+    await tournamentStore.getTournamentPage(pageNr.value, filters);
+
+    isLoading.value = false;
+  } catch (error) {
+    isLoading.value = false;
+  }
+}
 </script>
 
 <template>

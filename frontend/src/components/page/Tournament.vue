@@ -26,6 +26,11 @@ const isLoading = ref(false);
 
 onMounted(async () => {
   await tournamentStore.getTournament(tournamentId);
+
+  let externalLinkIcon = document.getElementById('externalLinkIcon');
+  let externalLinkText = document.getElementById('externalLinkText');
+  externalLinkIcon.href = tournamentData.value.externalLink;
+  externalLinkText.href = tournamentData.value.externalLink;
 })
 
 /**
@@ -58,6 +63,10 @@ async function joinTournament() {
   }
 }
 
+function getHostName(url) {
+  return (new URL(url).hostname.replace('www.',''));
+}
+
 </script>
 
 <template>
@@ -74,7 +83,7 @@ async function joinTournament() {
               year: 'numeric'
             })
           }}
-          <template v-if="tournamentData.endDate"> - {{
+          <template v-if="tournamentData.endDate && tournamentData.endDate !== tournamentData.date"> - {{
               new Date(tournamentData.endDate).toLocaleString('en-US', {
                 day: 'numeric',
                 month: 'long',
@@ -88,16 +97,16 @@ async function joinTournament() {
           }}</span>
         <div class="sub-header text-center">
           <div v-if="tournamentData.externalLink" class="d-inline-flex gap-1 text-center align-items-center">
-            <a href="{{tournamentData.externalLink}}" class="pi pi-external-link"></a>
-            <a href="{{tournamentData.externalLink}}">{{ tournamentData.externalLink }}</a>
-          </div>
-          <div class="d-inline-flex gap-1 text-center align-items-center ms-1">
-            <span class="pi pi-user"></span>
-            <span>{{tournamentData.players?.length}}/{{tournamentData.maxPlayers }}</span>
+            <a id="externalLinkIcon" target="_blank" class="pi pi-external-link"></a>
+            <a id="externalLinkText" target="_blank">{{ getHostName(tournamentData.externalLink) }}</a>
           </div>
         </div>
         <span class="sub-header text-center">
-          {{ tournamentData.state }}
+          <div class="d-inline-flex gap-1 text-center align-items-center ms-1">
+            <span class="pi pi-user"></span>
+            <span>{{tournamentData.players?.length}}/{{tournamentData.maxPlayers }},</span>
+            <span>{{ tournamentData.state }}</span>
+          </div>
         </span>
       </div>
       <span class="sub-header">Players</span>
@@ -107,7 +116,7 @@ async function joinTournament() {
           <div class="card-text-container text-truncate">
             <div class="text-truncate">
               <span class="card-title">{{ player.username }}</span>
-              <span class="fs-6 text-truncate"> ({{ player.pbwPin ? player.pbwPin : player.email }})</span>
+              <span v-if="isOrga" class="fs-6 text-truncate"> ({{ player.pbwPin ? player.pbwPin : player.email }})</span>
             </div>
             <div class="d-flex">
               <span class="text-truncate">TP: {{ player.TP }}, SoS: {{ player.SoS }}, VP: {{ player.VP }};
@@ -139,7 +148,7 @@ async function joinTournament() {
 
   <Dialog v-model:visible="dialogVisible" modal header="JOIN TOURNAMENT" :style="{ width: '15rem' }" :closable="false">
     <form v-if="tournamentData.players">
-      <form class="m-auto mb-3 w-75">
+      <div class="m-auto mb-3 w-75">
         <div class="form-field">
           <label for="faction" class="form-label">Faction*</label>
           <span class="select-icon pi pi-angle-down"></span>
@@ -155,13 +164,14 @@ async function joinTournament() {
             <option value="city_states">City States</option>
             <option value="sorcerer_kings">Sorcerer Kings</option>
             <option value="yoroni">Yoroni</option>
+            <option value="weaver_courts">Weaver Courts</option>
           </select>
         </div>
         <div class="form-field">
           <label for="team" class="form-label">Team</label>
           <input v-model.trim="team" id="team" type="text" class="form-control">
         </div>
-      </form>
+      </div>
     </form>
     <template #footer>
       <div class="button-container">

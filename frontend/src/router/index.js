@@ -12,6 +12,7 @@ const routes = [
     { path: '/tournament/:id', name: 'Tournament', component: () => import('../components/page/Tournament.vue'), meta: { title: ' - Tournament' } },
     { path: '/tournament/add-players/:id', name: 'Add Players', component: () => import('../components/page/AddPlayers.vue'), meta: { title: ' - Add Players' } },
     { path: '/tournament/tournament-round/:id/:round?', name: 'Tournament Round', component: () => import('../components/page/TournamentRound.vue'), meta: { title: ' - Round' } },
+    { path: '/statistics', name: 'Statistics', component: () => import('../components/page/Statistics.vue'), meta: { title: ' - Statistics' } },
 ]
 
 const router = createRouter({

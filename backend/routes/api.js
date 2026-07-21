@@ -12,7 +12,10 @@ const {
     startTournament, endTournamentRound, createNewRound, endTournament, startRound, loadTournamentPage, joinTournament,
     loadTournamentsForParticipant
 } = require("../src/controller/tournament")
-const {loadRoundForTournament, endGame, reopenGame, updateGameScore, swapPlayers} = require("../src/controller/game");
+const {
+    loadRoundForTournament, endGame, reopenGame, updateGameScore, swapPlayers,
+    loadFactionStatisticsFromStartToEndDate, loadAllStatisticsFromStartToEndDate
+} = require("../src/controller/game");
 let router = express.Router();
 
 // User
@@ -74,8 +77,14 @@ router.post('/tournament/start-round', verifyJWT, async function (req, res) {
 });
 
 // Games
-router.get('/games/get-tournament-round', verifyJWT, async function (req, res) {
+router.get('/games/get-tournament-round', async function (req, res) {
     await loadRoundForTournament(req.query.tournamentId, req.query.roundNr, res)
+});
+router.get('/games/get-faction-statistics', async function (req, res) {
+    await loadFactionStatisticsFromStartToEndDate(req.query.faction, req.query.startDate, req.query.endDate, res)
+});
+router.get('/games/get-all-statistics', async function (req, res) {
+    await loadAllStatisticsFromStartToEndDate(req.query.startDate, req.query.endDate, res)
 });
 router.put('/games/end', verifyJWT, async function (req, res) {
     await endGame(req.body.gameId, verify(req.query.jwt, process.env.JWT_SECRET).userid, req.body.tournamentId, res)

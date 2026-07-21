@@ -554,6 +554,7 @@ async function createMatchups(tournament) {
             receivedBye: player.receivedBye,
             TP: player.TP,
             teamName: player.teamName,
+            faction: player.faction,
         };
     });
 
@@ -579,12 +580,15 @@ async function createMatchups(tournament) {
             game.player2,
             tournament.id,
             tournament.currentRound,
+            (new Date()).toISOString().substring(0, 10),
             0,
             0,
             false,
             null,
             0,
-            game.match
+            game.match,
+            players.filter((p) => p.id === game.player1)[0].faction,
+            players.filter((p) => p.id === game.player2)[0].faction,
         ]
     });
 

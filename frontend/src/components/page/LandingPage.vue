@@ -15,6 +15,7 @@ const isAuthenticated = computed(() => authStore.isAuthenticated);
       <button :disabled="!isAuthenticated" :class="{disabled: !isAuthenticated}" v-on:click="router.push({ name: 'My Tournaments' })">My Tournaments</button>
       <button :disabled="!isAuthenticated" :class="{disabled: !isAuthenticated}" v-on:click="router.push({ name: 'Joined Tournaments' })">Joined Tournaments</button>
       <button :disabled="!isAuthenticated" :class="{disabled: !isAuthenticated}" v-on:click="router.push({ name: 'Create Tournament' })">Create Tournament</button>
+      <button v-on:click="router.push({ name: 'Statistics' })">Statistics</button>
     </div>
   </div>
 </template>

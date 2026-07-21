@@ -13,7 +13,6 @@ const confirm = useConfirm();
 const route = useRoute();
 const authStore = useAuthStore();
 const tournamentStore = useTournamentStore()
-const isAuthenticated = computed(() => authStore.isAuthenticated);
 const tournamentData = computed(() => tournamentStore.currentTournament);
 const tournamentId = route.params.id;
 const roundNr = ref(1);
@@ -25,9 +24,6 @@ const currentUser = computed(() => authStore.currentUser);
 const isOrga = computed(() => authStore.currentUser.id === tournamentData.value.orgaId);
 
 onMounted(async () => {
-  // Authentifizierung überprüfen
-  if (!isAuthenticated.value) await router.push({name: 'Login'});
-
   if(route.params.round) roundNr.value = parseInt(route.params.round);
 
   await tournamentStore.getTournament(tournamentId);

@@ -11,7 +11,6 @@ import {definePreset} from '@primevue/themes';
 import ConfirmationService from 'primevue/confirmationservice';
 import ToastService from 'primevue/toastservice';
 
-// Falls eigenes Styling für Primevue genutzt werden soll
 // Siehe https://primevue.org/theming/styled/
 const MyPreset = definePreset(Aura, {
     components: {
@@ -21,6 +20,20 @@ const MyPreset = definePreset(Aura, {
             border: {
                 color: 'transparent',
                 radius: '0.25rem',
+            }
+        },
+        datatable: {
+            headerCell: {
+                background: 'var(--color-background-soft)',
+                color: 'var(--color-text-light)',
+                padding: '0.35rem 0.5rem'
+            },
+            row: {
+                background: 'transparent',
+                color: 'var(--color-text)',
+            },
+            bodyCell: {
+                padding: '0.35rem 0.5rem'
             }
         }
     }

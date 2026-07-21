@@ -3,9 +3,10 @@ const {
     getGameWithPlayerNames,
     setGameEnded,
     updateGame,
-    getGame
+    getGame, getGameCountForFactionAndStartToEndDate, getWinCountForFactionAndStartToEndDate,
+    getDrawCountForFactionAndStartToEndDate
 } = require("../database/game");
-const {getTournament, getPlayerOverView} = require("../database/tournament");
+const {getTournament, getPlayerOverView, getEndedTournamentsForTimeframe} = require("../database/tournament");
 const {checkCanEndRound} = require("./tournament");
 
 /**
@@ -162,7 +163,7 @@ async function updateGameScore(partialGame, userId, tournamentId, res) {
 async function swapPlayers(game1Id, game2Id, userIdToSwapFromGame1, userIdToSwapFromGame2, orgaId, res) {
     const title = "Error swapping players";
 
-    if (!game1Id|| !game2Id || !(orgaId?.length > 0)) {
+    if (!game1Id || !game2Id || !(orgaId?.length > 0)) {
         res.status(400);
         return res.json({title, text: "Incomplete data"});
     }
@@ -193,7 +194,7 @@ async function swapPlayers(game1Id, game2Id, userIdToSwapFromGame1, userIdToSwap
         return res.json({title, text: "Only the orga can swap players"});
     }
 
-    if(tournament.currentRound !== game1.roundNr && tournament.currentRound !== game2.roundNr && tournament.currentRoundState !== "created") {
+    if (tournament.currentRound !== game1.roundNr && tournament.currentRound !== game2.roundNr && tournament.currentRoundState !== "created") {
         res.status(403);
         return res.json({title, text: "You can't swap matchups in ongoing or ending rounds"});
     }
@@ -222,6 +223,95 @@ async function swapPlayers(game1Id, game2Id, userIdToSwapFromGame1, userIdToSwap
     return res.json({title, text: "Something went wrong. Please try again later"});
 }
 
+async function loadFactionStatisticsFromStartToEndDate(faction, startDate, endDate, res) {
+    const title = "Error Loading Statistics";
+
+    if (!(faction.length > 0) || !(startDate.length > 0)) {
+        res.status(400);
+        return res.json({title, text: "Incomplete data"});
+    }
+
+    if (!endDate) endDate = (new Date()).toISOString().substring(0, 10);
+
+    const gameCount = Number(await getGameCountForFactionAndStartToEndDate(faction, startDate, endDate));
+    const gameWinCount = Number(await getWinCountForFactionAndStartToEndDate(faction, startDate, endDate));
+
+    let tournamentWins = 0;
+    let tournamentPodiums = 0;
+    const tournaments = await getEndedTournamentsForTimeframe(startDate, endDate);
+
+    if (tournaments) {
+        for (const t of tournaments) {
+            t.players = await getPlayerOverView(t.id);
+
+            t.players?.slice(0, 3).forEach((p, index) => {
+                if (p.faction === faction) tournamentPodiums++;
+                if (index === 0 && p.faction === faction) tournamentWins++
+            })
+        }
+    }
+
+    return res.json({gameCount, gameWinCount, tournamentWins, tournamentPodiums});
+}
+
+async function loadAllStatisticsFromStartToEndDate(startDate, endDate, res) {
+    const title = "Error Loading Statistics";
+
+    if(!startDate) startDate = '2017-11-16'
+
+    const factions = ['100K', 'spires', 'dweghom', 'nords', 'wadrhun', 'old_dominion', 'city_states', 'sorcerer_kings', 'yoroni', 'weaver_courts'];
+    let results = [];
+
+    if (!endDate) endDate = (new Date()).toISOString().substring(0, 10);
+    const tournaments = await getEndedTournamentsForTimeframe(startDate, endDate);
+
+    if (tournaments) {
+        for (const t of tournaments) {
+            t.players = await getPlayerOverView(t.id);
+        }
+    }
+
+    console.log(tournaments)
+
+    let tournamentWins = 0;
+    let tournamentPodiums = 0;
+    let tournamentEntries = 0;
+
+    for (let i = 0; i < factions.length; i++) {
+        tournamentWins = 0;
+        tournamentPodiums = 0;
+        tournamentEntries = 0;
+
+        results[i] = {};
+        results[i].faction = factions[i];
+        results[i].gameCount = Number(await getGameCountForFactionAndStartToEndDate(factions[i], startDate, endDate));
+        results[i].gameWinCount = Number(await getWinCountForFactionAndStartToEndDate(factions[i], startDate, endDate));
+        results[i].gameDrawCount = Number(await getDrawCountForFactionAndStartToEndDate(factions[i], startDate, endDate));
+
+        tournaments.forEach((t) => {
+            t.players?.forEach((p, index) => {
+                if (p.faction === factions[i]) {
+                    tournamentEntries++;
+                    if (index < 3) tournamentPodiums++;
+                    if (index === 0) tournamentWins++;
+                }
+            })
+        })
+
+        results[i].tournamentWins = tournamentWins;
+        results[i].tournamentPodiums = tournamentPodiums;
+        results[i].tournamentEntries = tournamentEntries;
+    }
+
+    return res.json(results);
+}
+
 module.exports = {
-    loadRoundForTournament, endGame, reopenGame, updateGameScore, swapPlayers
+    loadRoundForTournament,
+    endGame,
+    reopenGame,
+    updateGameScore,
+    swapPlayers,
+    loadFactionStatisticsFromStartToEndDate,
+    loadAllStatisticsFromStartToEndDate
 }

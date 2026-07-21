@@ -14,7 +14,7 @@ async function getGamesForTournamentRound(tournamentId, roundNr) {
         conn = await getConnection();
         let rows = await conn.query('Select g.*, gu1.username as username1, gu2.username as username2 from game g join (select u.username, u.id from users u join game g on u.id = g.player1) gu1 on g.player1 = gu1.id left join (select u.username, u.id from users u join game g on u.id = g.player2) gu2 on g.player2 = gu2.id where g.tournament_id = ? and g.round_nr = ? group by g.table_nr ORDER BY g.table_nr ASC', [tournamentId, roundNr]);
         if (rows.length > 0) { // Wenn mind. 1 Ergebnis gefunden wurde
-            rows.forEach((row) => result.push(new Game(row['id'], row['player1'], row['player2'], row['username1'], row['username2'], row['tournament_id'], row['round_nr'], row['score1'], row['score2'], row['ended'] === 1, row['winner_id'], row['table_nr'], row['scenario'])))
+            rows.forEach((row) => result.push(new Game(row['id'], row['player1'], row['player2'], row['username1'], row['username2'], row['tournament_id'], row['round_nr'], row['date'], row['score1'], row['score2'], row['ended'] === 1, row['winner_id'], row['table_nr'], row['scenario'], row['faction1'], row['faction2'])))
         }
         return result;
     } catch (e) {
@@ -49,7 +49,7 @@ async function getGameWithPlayerNames(gameId) {
         let rows = await conn.query('Select g.*, gu1.username as username1, gu2.username as username2 from game g join (select u.username, u.id from users u join game g on u.id = g.player1) gu1 on g.player1 = gu1.id left join (select u.username, u.id from users u join game g on u.id = g.player2) gu2 on g.player2 = gu2.id where g.id = ? group by g.id LIMIT 1', [gameId]);
         if (rows.length === 1) { // Wenn 1 Ergebnis gefunden wurde
             let row = rows[0];
-            result = new Game(row['id'], row['player1'], row['player2'], row['username1'], row['username2'], row['tournament_id'], row['round_nr'], row['score1'], row['score2'], row['ended'] === 1, row['winner_id'], row['table_nr'], row['scenario']);
+            result = new Game(row['id'], row['player1'], row['player2'], row['username1'], row['username2'], row['tournament_id'], row['round_nr'], row['date'], row['score1'], row['score2'], row['ended'] === 1, row['winner_id'], row['table_nr'], row['scenario'], row['faction1'], row['faction2']);
         }
         return result;
     } catch (e) {
@@ -67,7 +67,7 @@ async function getGame(gameId) {
         let rows = await conn.query('Select * from game where id = ? LIMIT 1', [gameId]);
         if (rows.length === 1) { // Wenn 1 Ergebnis gefunden wurde
             let row = rows[0];
-            result = new Game(row['id'], row['player1'], row['player2'], undefined, undefined, row['tournament_id'], row['round_nr'], row['score1'], row['score2'], row['ended'] === 1, row['winner_id'], row['table_nr'], row['scenario']);
+            result = new Game(row['id'], row['player1'], row['player2'], undefined, undefined, row['tournament_id'], row['round_nr'], row['date'], row['score1'], row['score2'], row['ended'] === 1, row['winner_id'], row['table_nr'], row['scenario'], row['faction1'], row['faction2']);
         }
         return result;
     } catch (e) {
@@ -100,7 +100,7 @@ async function createGames(games) {
             conn = await getConnection();
             let row;
             if (conn) {
-                row = await conn.query('insert into `game` (player1, player2, tournament_id, round_nr, score1, score2, ended, winner_id, scenario, table_nr) VALUES ' + expand(games.length, 10), flatten(games));
+                row = await conn.query('insert into `game` (player1, player2, tournament_id, round_nr, date, score1, score2, ended, winner_id, scenario, table_nr, faction1, faction2) VALUES ' + expand(games.length, 13), flatten(games));
                 return row.affectedRows > 0;
             }
         } catch (e) {
@@ -131,38 +131,55 @@ async function getMatchupsToAvoidForTournamentUser(userId, tournamentId) {
     }
 }
 
-async function getGameCountForFactionAndDate(faction, date) {
+async function getGameCountForFactionAndStartToEndDate(faction, startDate, endDate) {
     let result = 0;
     let conn;
     try {
         conn = await getConnection();
-        let rows = await conn.query('SELECT COUNT(*) as gameCount FROM `game` JOIN tournament_user ON game.tournament_id = tournament_user.tournament_id AND (game.player1 = tournament_user.user_id OR game.player2 = tournament_user.user_id) WHERE tournament_user.faction = ? AND game.date >= ?;', [faction, date]);
+        let rows = await conn.query('SELECT COUNT(*) as gameCount FROM (SELECT * FROM `game` WHERE faction1 = ? UNION ALL SELECT * FROM `game` WHERE faction2 = ?) as games WHERE games.date >= ? AND games.date <= ? AND games.ended;', [faction, faction, startDate, endDate]);
         if (rows.length === 1) { // Wenn 1 Ergebnis gefunden wurde
-            result = rows[0]['pageCount'];
+            result = rows[0]['gameCount'];
         }
-        return result;
     } catch (e) {
         console.log(e);
     } finally {
         if (conn) await conn.end();
     }
+    return result;
 }
 
-async function getWinCountForFactionAndDate(faction, date) {
+async function getWinCountForFactionAndStartToEndDate(faction, startDate, endDate) {
     let result = 0;
     let conn;
     try {
         conn = await getConnection();
-        let rows = await conn.query('SELECT COUNT(*) as gameCount FROM `game` JOIN tournament_user ON game.tournament_id = tournament_user.tournament_id AND game.winner_id = tournament_user.user_id WHERE tournament_user.faction = ? AND game.date >= ?;', [faction, date]);
+        let rows = await conn.query('SELECT COUNT(*) as gameCount FROM (SELECT * FROM `game` WHERE faction1 = ? AND player1 = winner_id UNION ALL SELECT * FROM `game` WHERE faction2 = ? AND player2 = winner_id) as games WHERE games.date >= ? AND games.date <= ? AND games.ended;', [faction, faction, startDate, endDate]);
         if (rows.length === 1) { // Wenn 1 Ergebnis gefunden wurde
-            result = rows[0]['pageCount'];
+            result = rows[0]['gameCount'];
         }
-        return result;
     } catch (e) {
         console.log(e);
     } finally {
         if (conn) await conn.end();
     }
+    return result;
+}
+
+async function getDrawCountForFactionAndStartToEndDate(faction, startDate, endDate) {
+    let result = 0;
+    let conn;
+    try {
+        conn = await getConnection();
+        let rows = await conn.query('SELECT COUNT(*) as gameCount FROM (SELECT * FROM `game` WHERE faction1 = ? UNION ALL SELECT * FROM `game` WHERE faction2 = ?) as games WHERE games.date >= ? AND games.date <= ? AND games.ended AND games.winner_id IS NULL;', [faction, faction, startDate, endDate]);
+        if (rows.length === 1) { // Wenn 1 Ergebnis gefunden wurde
+            result = rows[0]['gameCount'];
+        }
+    } catch (e) {
+        console.log(e);
+    } finally {
+        if (conn) await conn.end();
+    }
+    return result;
 }
 
 // expand(3, 2) returns "($, $), ($, $), ($, $)"
@@ -186,6 +203,7 @@ module.exports = {
     updateGame,
     createGames,
     getMatchupsToAvoidForTournamentUser,
-    getGameCountForFactionAndDate,
-    getWinCountForFactionAndDate
+    getGameCountForFactionAndStartToEndDate,
+    getWinCountForFactionAndStartToEndDate,
+    getDrawCountForFactionAndStartToEndDate
 }
