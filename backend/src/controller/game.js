@@ -271,8 +271,6 @@ async function loadAllStatisticsFromStartToEndDate(startDate, endDate, res) {
         }
     }
 
-    console.log(tournaments)
-
     let tournamentWins = 0;
     let tournamentPodiums = 0;
     let tournamentEntries = 0;

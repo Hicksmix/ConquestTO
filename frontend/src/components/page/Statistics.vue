@@ -275,6 +275,7 @@ async function loadFilters() {
         align-items: center;
         white-space: nowrap;
         justify-items: center;
+        margin: auto;
       }
 
       .header-cell {
